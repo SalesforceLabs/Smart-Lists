@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Display_Quick_Filters_All_the_Time__c</fullName>
+    <defaultValue>false</defaultValue>
+    <externalId>false</externalId>
+    <fieldManageability>DeveloperControlled</fieldManageability>
+    <inlineHelpText>Display the Filters Panel all the time. The panel cannot be closed</inlineHelpText>
+    <label>Display Filters Panel All the Time</label>
+    <type>Checkbox</type>
+</CustomField>

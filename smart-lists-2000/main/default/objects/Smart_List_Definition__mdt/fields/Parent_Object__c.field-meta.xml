@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Parent_Object__c</fullName>
+    <externalId>false</externalId>
+    <fieldManageability>DeveloperControlled</fieldManageability>
+    <inlineHelpText>For indirect relationships (parent-child relationships not using the parent record id), API name of the parent object
+Example of indirect relationship: Case is the parent object and the list is displaying the Contacts related to the Account of the parent Case record -&gt; Parent Object = Case and Parent Key Field = AccountId</inlineHelpText>
+    <label>Indirect Relationship: Parent Object (De</label>
+    <length>255</length>
+    <required>false</required>
+    <type>Text</type>
+    <unique>false</unique>
+</CustomField>

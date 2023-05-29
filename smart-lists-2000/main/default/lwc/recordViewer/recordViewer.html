@@ -1,0 +1,193 @@
+<template>
+    <template lwc:if={isTable}>
+        <template lwc:if={initializedContext}>
+            <div class="sl-viewer-border-top sl-datatable-container">
+                <c-sl-datatable key-field={rowKey} data={datatableRecords} columns={columns}
+                    max-row-selection={maxRowSelected} hide-checkbox-column={hideCheckboxColumm}
+                    hide-table-header={hideTableHeader} show-row-number-column={showRowNumberColumn}
+                    row-number-offset={rowNumberStart} selected-rows={selectedRecordsProgrammatic}
+                    default-sort-direction={defaultSortDirection} sorted-direction={sortDirection}
+                    sorted-by={_sortField} wrap-text-max-lines={wrapTextMaxLines} onsort={handleSort}
+                    onrowaction={handleDatatableRowAction} onrowselection={handleDatatableRowSelection}
+                    load-more-offset="40" enable-infinite-loading={canLoadData} onloadmore={handleLoadMore}
+                    is-loading={isLoading}>
+                </c-sl-datatable>
+            </div>
+            <template lwc:if={hasRecords}>
+                <div class="slds-card__footer slds-m-top_none slds-text-align_right">
+                    {loadStatus}
+                </div>
+            </template>
+        </template>
+    </template>
+    <template lwc:else>
+        <template lwc:if={initializedContext}>
+            <template lwc:if={hasRecords}>
+                <div class="slds-card__body sl-tile sl-viewer-border-top slds-m-top_none slds-m-bottom_none">
+                    <ul class="slds-grid slds-wrap slds-grid-pull-padded sl-tile-body">
+                        <template for:each={tilesRecords} for:item="tileRecord">
+                            <li key={tileRecord.Id} class={tileRowClass}>
+                                <article class="slds-tile slds-media slds-card__tile slds-hint-parent slds-var-p-horizontal_medium">
+                                    <div class="slds-media__figure">
+                                        <template lwc:if={tileRecord.header.canSelectRows}>
+                                            <template lwc:if={tileRecord.header.isMultiSelect}>
+                                                <div class="slds-checkbox">
+                                                    <input type="checkbox" data-id={tileRecord.Id} id={tileRecord.Id}
+                                                        class="sl-row-selector" onchange={handleTileRowSelection} />
+                                                    <label class="slds-checkbox__label" for={tileRecord.Id}>
+                                                        <span class="slds-checkbox_faux sl-selection-checkbox"></span>
+                                                    </label>
+                                                </div>
+                                            </template>
+                                            <template lwc:else>
+                                                <div class="slds-radio">
+                                                    <input type="radio" data-id={tileRecord.Id} id={tileRecord.Id}
+                                                        class="sl-row-selector sl-radio"
+                                                        onchange={handleTileRowSelection} />
+                                                    <label class="slds-radio__label" for={tileRecord.Id}>
+                                                        <span class="slds-radio_faux sl-selection-checkbox"></span>
+                                                    </label>
+                                                </div>
+                                            </template>
+                                        </template>
+                                    </div>
+                                    <div class="slds-media__body">
+                                        <div class="slds-grid slds-grid_align-spread slds-has-flexi-truncate">
+                                            <template lwc:if={tileRecord.header.isUrl}>
+                                                <lightning-formatted-url label={tileRecord.header.value}
+                                                    value={tileRecord.header.url} tooltip={tileRecord.header.value}
+                                                    class="slds-truncate"></lightning-formatted-url>
+                                            </template>
+                                            <template lwc:else>
+                                                <lightning-formatted-text value={tileRecord.header.value}
+                                                    class="slds-truncate"></lightning-formatted-text>
+                                            </template>
+                                            <div class="slds-shrink-none">
+                                                <template lwc:if={tileRecord.header.badgeField}>
+                                                    <span class="slds-badge sl-badge slds-var-m-right_medium"
+                                                        style={tileRecord.header.badgeField.style}>
+                                                        {tileRecord.header.badgeField.value}
+                                                    </span>
+                                                </template>
+                                                <template lwc:if={tileRecord.header.actions}>
+                                                    <lightning-button-menu alternative-text={labels.labelShowActions} class="sl-row-action-button"
+                                                        icon-size="x-small" data-id={tileRecord.Id}
+                                                        onselect={handleTileRowAction} menu-alignment="auto">
+                                                        <template for:each={tileRecord.header.actions} for:item="action">
+                                                            <lightning-menu-item key={action.key} value={action.key}
+                                                                label={action.label}></lightning-menu-item>
+                                                        </template>
+                                                    </lightning-button-menu>
+                                                </template>
+                                            </div>
+                                        </div>
+                                        <div class="slds-grid slds-wrap slds-tile__detail">
+                                            <template for:each={tileRecord.fields} for:item="field">
+                                                <dl key={field.label} class={tileColumnsClass}>
+                                                    <dt class="slds-item_label slds-text-color_weak slds-truncate"
+                                                        title={field.label}>{field.label}:</dt>
+                                                    <dd class="slds-item_detail slds-truncate" title={field.value}>
+                                                        <template lwc:if={field.isBoolean}>
+                                                            <lightning-input type="checkbox" label={field.label}
+                                                                checked={field.value} disabled variant="label-hidden">
+                                                            </lightning-input>
+                                                        </template>
+                                                        <template lwc:elseif={field.isDateTime}>
+                                                            <lightning-formatted-date-time value={field.value}
+                                                                year="numeric" month="2-digit" day="2-digit"
+                                                                hour="2-digit" minute="2-digit"
+                                                                time-zone={field.timeZone}>
+                                                            </lightning-formatted-date-time>
+                                                        </template>
+                                                        <template lwc:elseif={field.isDate}>
+                                                            <lightning-formatted-date-time value={field.value}
+                                                                year="numeric" month="2-digit" day="2-digit"
+                                                                time-zone={tileRecord.timeZone}>
+                                                            </lightning-formatted-date-time>
+                                                        </template>
+                                                        <template lwc:elseif={field.isTime}>
+                                                            <lightning-formatted-date-time value={field.value}
+                                                                hour="2-digit" minute="2-digit" second="2-digit"
+                                                                time-zone="UTC">
+                                                            </lightning-formatted-date-time>
+                                                        </template>
+                                                        <template lwc:elseif={field.isNumber}>
+                                                            <lightning-formatted-number value={field.value}
+                                                                minimum-fraction-digits={field.fractionDigits}></lightning-formatted-number>
+                                                        </template>
+                                                        <template lwc:elseif={field.isCurrency}>
+                                                            <lightning-formatted-number value={field.value}
+                                                                minimum-fraction-digits={field.fractionDigits}
+                                                                format-style="currency"
+                                                                currency-code={tileRecord.currencyCode}></lightning-formatted-number>
+                                                        </template>
+                                                        <template lwc:elseif={field.isPercent}>
+                                                            <lightning-formatted-number value={field.value}
+                                                                minimum-fraction-digits={field.fractionDigits}
+                                                                format-style="percent"></lightning-formatted-number>
+                                                        </template>
+                                                        <template lwc:elseif={field.isLocation}>
+                                                            <lightning-formatted-location
+                                                                latitude={field.value.latitude}
+                                                                longitude={field.value.longitude}></lightning-formatted-location>
+                                                        </template>
+                                                        <template lwc:elseif={field.isPhone}>
+                                                            <lightning-formatted-phone
+                                                                value={field.value}></lightning-formatted-phone>
+                                                        </template>
+                                                        <template lwc:elseif={field.isHtml}>
+                                                            <lightning-formatted-rich-text
+                                                                value={field.value}></lightning-formatted-rich-text>
+                                                        </template>
+                                                        <template lwc:elseif={field.isEmail}>
+                                                            <lightning-formatted-email value={field.value}
+                                                                hide-icon></lightning-formatted-email>
+                                                        </template>
+                                                        <template lwc:elseif={field.isUrl}>
+                                                            <lightning-formatted-url value={field.value}
+                                                                tooltip={field.value}
+                                                                target="_blank"></lightning-formatted-url>
+                                                        </template>
+                                                        <template lwc:elseif={field.isHyperlink}>
+                                                            <lightning-formatted-url value={field.url}
+                                                                label={field.value} tooltip={field.value}>
+                                                            </lightning-formatted-url>
+                                                        </template>
+                                                        <template lwc:else>
+                                                            <lightning-formatted-text
+                                                                value={field.value}></lightning-formatted-text>
+                                                        </template>
+                                                    </dd>
+                                                </dl>
+                                            </template>
+                                        </div>
+                                    </div>
+                                </article>
+                            </li>
+                        </template>
+                    </ul>
+                    <div class="slds-card__footer slds-m-top_none">
+                        <template lwc:if={canLoadData}>
+                            <lightning-button class="slds-var-m-right_medium" variant="neutral"
+                                label={labels.labelLoadMore} onclick={handleLoadMore}></lightning-button>
+                            <lightning-button class="slds-var-m-left_medium" variant="neutral"
+                                label={labels.labelLoadAll} onclick={handleLoadAll}></lightning-button>
+                        </template>
+                        <template lwc:else>
+                            <div class="slds-var-m-right_small slds-text-align_right">
+                                {loadStatus}
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </template>
+        </template>
+    </template>
+    <template lwc:if={initializedContext}>
+        <template lwc:if={hasNoRecords}>
+            <div class="slds-var-m-around_small slds-text-align_center">
+                <p>{labels.labelNoItemsToDisplay}</p>
+            </div>
+        </template>
+    </template>
+</template>

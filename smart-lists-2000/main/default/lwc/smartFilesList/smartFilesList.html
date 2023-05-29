@@ -1,0 +1,51 @@
+<template>
+    <div style="display: none;">
+        <input type="file" class="file-uploader" accept={acceptedExtensions}
+            onchange={uploadNewVersionFileSelected}><label></label></input>
+    </div>
+    <c-smart-list-shared record-id={recordId} list-name={listName} in-record-page={inRecordPage} in-tab={inTab}
+        flow={flow} min-row-selected={minRowSelected} oninitialize={handleInitialize} onrowaction={handleRowAction}>
+        <template lwc:if={uploadFilesAction}>
+            <div class="slds-page-header__control" slot="actionButtons">
+                <lightning-file-upload label="" data-name="fileUploader" name="fileUploader" record-id={parentId}
+                    accept={acceptedExtensionsArr} onuploadfinished={handleUploadFinished}
+                    alternative-text={uploadFilesAction.label} class={fileUploadClass} slot="actionButtons">
+                </lightning-file-upload>
+            </div>
+        </template>
+        <template lwc:if={downloadAllFilesAction}>
+            <div class="slds-page-header__control" slot="actionButtons">
+                <lightning-button-menu alternative-text={labels.labelDownloadMenu} title={labels.labelDownloadMenu}
+                    icon-name="utility:download" icon-size="medium" menu-alignment="auto" slot="actionButtons" disabled={hasNoRecords}>
+                    <lightning-menu-item value={downloadSelectedFilesAction.key}
+                        label={downloadSelectedFilesAction.label} onclick={handleDownloadSelectedFiles}
+                        disabled={hasNoSelectedRecords}></lightning-menu-item>
+                    <lightning-menu-item value={downloadAllFilesAction.key} label={downloadAllFilesAction.label}
+                        onclick={handleDownloadAllFiles}> </lightning-menu-item>
+                </lightning-button-menu>
+            </div>
+            <template lwc:if={previewFilesAction}>
+                <div class="slds-page-header__control" slot="actionButtons">
+                    <lightning-button-icon-stateful icon-name="utility:preview" onclick={handlePreviewSelectedFiles}
+                        disabled={hasNoSelectedRecords} alternative-text={previewFilesAction.label}
+                        slot="actionButtons">
+                    </lightning-button-icon-stateful>
+                </div>
+            </template>
+        </template>
+    </c-smart-list-shared>
+    <template lwc:if={downloadFilesModal}>
+        <c-download-files-modal files-size={filesSize} files-count={rowsToDownload.length}
+            onclose={handleCloseDownloadFiles}>
+        </c-download-files-modal>
+    </template>
+    <template lwc:if={editFileModal}>
+        <c-edit-file-modal record-id={contentVersionId} file-title={fileTitle} fields={editFields}
+            onclose={handleCloseEditFile}></c-edit-file-modal>
+    </template>
+    <template lwc:if={uploadFileVersionModal}>
+        <c-upload-file-version-modal content-document-id={contentDocumentId} file={file} namespace={namespace}
+            onclose={handleCloseUploadFileVersion}>
+        </c-upload-file-version-modal>
+    </template>
+</template>

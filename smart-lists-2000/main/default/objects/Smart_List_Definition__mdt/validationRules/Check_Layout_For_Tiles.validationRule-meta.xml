@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Check_Layout_For_Tiles</fullName>
+    <active>true</active>
+    <errorConditionFormula>ISPICKVAL( Display_Mode__c , &apos;Tiles&apos;) &amp;&amp;  ISPICKVAL( Tile_Layout__c, &apos;&apos; )</errorConditionFormula>
+    <errorDisplayField>Tile_Layout__c</errorDisplayField>
+    <errorMessage>Tile Layout is required when Display Mode is Tiles</errorMessage>
+</ValidationRule>

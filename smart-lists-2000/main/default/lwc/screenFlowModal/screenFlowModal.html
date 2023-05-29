@@ -1,0 +1,28 @@
+<template>
+    <div>
+        <section role="dialog" tabindex="-1" aria-modal="true" aria-describedby="modal-content-id-1"
+            class="slds-modal slds-fade-in-open">
+            <div class="slds-modal__container modal-style" style="min-width:50%; height:600px">
+                <template if:true={loadingFlow}>
+                    <div style="position: absolute;top:50%;left:50%">
+                        <lightning-spinner variant="brand" alternative-text="Loading" size="medium"></lightning-spinner>
+                    </div>
+                </template>
+                <header class="slds-modal__header" style="height: 0px">
+                    <button
+                        class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse slds-current-color"
+                        title={labels.labelClose} onclick={closeModal}>
+                        <lightning-icon size="x-small" icon-name="utility:close" alternative-text={labels.labelClose}
+                            title={labels.labelClose}><label></label></lightning-icon>
+                    </button>
+                </header>
+                <div class="slds-modal__content slds-var-p-around_medium flowcontent" id="modal-content-id-1">
+                    <!--iframe height={modalHeight} width="100%" src="/apex/smartlists__SmartListAura" style="border: none"></iframe-->
+                    <lightning-flow flow-api-name={flowName} flow-input-variables={inputVariables} onstatuschange={onFlowStatusChange} flow-finish-behavior="RESTART">
+                    </lightning-flow>
+                </div>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    </div>
+</template>

@@ -1,0 +1,49 @@
+<template>
+    <div>
+        <section role="dialog" tabindex="-1" aria-modal="true" aria-describedby="modal-content-id-1"
+            class="slds-modal slds-fade-in-open">
+            <div class="slds-modal__container modal-style">
+                <template if:true={uploading}>
+                    <div style="position: absolute;top:50%;left:50%">
+                        <lightning-spinner variant="brand" alternative-text={labels.labelLoading} size="medium"></lightning-spinner>
+                    </div>
+                </template>
+                <header class="slds-modal__header">
+                    <button
+                        class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse slds-current-color"
+                        title={labels.labelClose} onclick={closeModal} disabled={uploading}>
+                        <lightning-icon size="x-small" icon-name="utility:close" alternative-text={labels.labelClose}
+                            title={labels.labelClose}><label></label></lightning-icon>
+                    </button>
+                    <h2 id="modal-heading-01" class="slds-modal__title slds-hyphenate">
+                        {labels.labelUploadNewVersion}
+                    </h2>
+                </header>
+                <div class="slds-modal__content slds-var-p-around_medium">
+                    <div class="slds-grid slds-gutters_small slds-grid_vertical-align-center">
+                        <div class="slds-col slds-size_1-of-12 fileInfo">
+                            <lightning-icon icon-name="standard:file"></lightning-icon>
+                        </div>
+                        <div class="slds-col slds-size_9-of-12 name truncate">
+                            {fileName}
+                        </div>
+                    </div>
+                    <div class="sl-reason">
+                        <lightning-textarea name="reason" label={labels.labelUploadNewVersionReason}
+                            onchange={onReasonChange}></lightning-textarea>
+                        <iframe src="/apex/smartlists__SmartListFileUploader" class="sl-iframe" style="height:0px; width:100%"></iframe>
+                    </div>
+                </div>
+                <footer class="slds-modal__footer">
+                    <button class="slds-button slds-button_neutral" onclick={closeModal} title={labels.labelCancel}
+                        disabled={uploading}>{labels.labelCancel}</button>
+                    <template if:true={fileName}>
+                        <button class="slds-button slds-button_brand" onclick={handleUpload} title={labels.labelUpload}
+                            disabled={uploading}>{labels.labelUpload}</button>
+                    </template>
+                </footer>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    </div>
+</template>

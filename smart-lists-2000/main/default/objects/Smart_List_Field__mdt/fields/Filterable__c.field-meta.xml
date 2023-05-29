@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Filterable__c</fullName>
+    <defaultValue>false</defaultValue>
+    <externalId>false</externalId>
+    <fieldManageability>DeveloperControlled</fieldManageability>
+    <inlineHelpText>This field is deprecated: Use Display in Quick Filters instead
+The field is filterable in the quick filters. Only used with Apex Data Source</inlineHelpText>
+    <label>Filterable (Deprecated)</label>
+    <type>Checkbox</type>
+</CustomField>

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Check_Default_Scope</fullName>
+    <active>true</active>
+    <errorConditionFormula>(ISPICKVAL(SOQL_Default_Scope__c, &apos;everything&apos;) &amp;&amp; ! SOQL_Scope_All__c) || (ISPICKVAL(SOQL_Default_Scope__c, &apos;mine&apos;) &amp;&amp; ! SOQL_Scope_My__c) || (ISPICKVAL(SOQL_Default_Scope__c, &apos;team&apos;) &amp;&amp; ! SOQL_Scope_My_Team__c) || (ISPICKVAL(SOQL_Default_Scope__c, &apos;subordinates&apos;) &amp;&amp; ! SOQL_Scope_My_Subordinates__c )</errorConditionFormula>
+    <errorDisplayField>SOQL_Default_Scope__c</errorDisplayField>
+    <errorMessage>The default filter is not one of the selected filters</errorMessage>
+</ValidationRule>

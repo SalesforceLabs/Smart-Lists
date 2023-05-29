@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Check_SOQL_Filter</fullName>
+    <active>true</active>
+    <errorConditionFormula>!ISPICKVAL(Smart_List_Definition__r.Data_Source_Type__c, &apos;Apex Data Source&apos;) &amp;&amp; ISBLANK(SOQL_Filter__c)</errorConditionFormula>
+    <errorDisplayField>SOQL_Filter__c</errorDisplayField>
+    <errorMessage>SOQL Filter is required for SOQL and Files list</errorMessage>
+</ValidationRule>

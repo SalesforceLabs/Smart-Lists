@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Check_Indirect_Relationship_SOQL_APEX</fullName>
+    <active>true</active>
+    <errorConditionFormula>(ISPICKVAL(Data_Source_Type__c, &quot;Apex Data Source&quot;) || ISPICKVAL(Data_Source_Type__c , &quot;SOQL with Sharing&quot;) ||ISPICKVAL(Data_Source_Type__c , &quot;SOQL without Sharing&quot;)) &amp;&amp; 
+ !ISBLANK( Parent_Key_Field__c ) &amp;&amp; ISBLANK( Parent_Id_Field__c )</errorConditionFormula>
+    <errorDisplayField>Parent_Id_Field__c</errorDisplayField>
+    <errorMessage>SOQL or APEX Data Source: Parent Key Field and Parent Id are required for an indirect relationship</errorMessage>
+</ValidationRule>

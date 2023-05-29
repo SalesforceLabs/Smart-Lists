@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Check_Lookup_Subtitle</fullName>
+    <active>true</active>
+    <errorConditionFormula>CONTAINS( Lookup_Subtitle_Field__c , &apos;.&apos;)</errorConditionFormula>
+    <errorDisplayField>Lookup_Subtitle_Field__c</errorDisplayField>
+    <errorMessage>Lookup Subtitle cannot be a related field such as Account.Name</errorMessage>
+</ValidationRule>

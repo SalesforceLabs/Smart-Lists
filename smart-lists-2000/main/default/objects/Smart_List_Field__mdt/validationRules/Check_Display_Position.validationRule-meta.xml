@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Check_Display_Position</fullName>
+    <active>true</active>
+    <errorConditionFormula>List_Field__c == true &amp;&amp; ISBLANK(Display_Position__c)</errorConditionFormula>
+    <errorDisplayField>Display_Position__c</errorDisplayField>
+    <errorMessage>Display Position is required for list fields</errorMessage>
+</ValidationRule>

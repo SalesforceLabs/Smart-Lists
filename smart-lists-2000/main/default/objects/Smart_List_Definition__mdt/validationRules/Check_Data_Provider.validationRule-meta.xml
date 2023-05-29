@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Check_Data_Provider</fullName>
+    <active>true</active>
+    <errorConditionFormula>ISPICKVAL(Data_Source_Type__c, &quot;Apex Data Source&quot;) &amp;&amp;
+ISBLANK(Data_Provider_Class__c)</errorConditionFormula>
+    <errorDisplayField>Data_Provider_Class__c</errorDisplayField>
+    <errorMessage>Data Provider Class is required for type &apos;	Apex Data Source&apos;</errorMessage>
+</ValidationRule>

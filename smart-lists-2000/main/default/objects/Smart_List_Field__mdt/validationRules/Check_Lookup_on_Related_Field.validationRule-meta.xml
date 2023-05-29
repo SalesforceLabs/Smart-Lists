@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Check_Lookup_on_Related_Field</fullName>
+    <active>true</active>
+    <errorConditionFormula>Lookup_in_Quick_Filters__c &amp;&amp; !CONTAINS( Field_Name__c , &apos;.&apos;) &amp;&amp; Field_Name__c != &apos;Owner&apos;</errorConditionFormula>
+    <errorDisplayField>Lookup_in_Quick_Filters__c</errorDisplayField>
+    <errorMessage>Lookup in Quick Filters is only available for related fields such as Account.Name or for Owner</errorMessage>
+</ValidationRule>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Parent_Id_Field__c</fullName>
+    <externalId>false</externalId>
+    <fieldManageability>DeveloperControlled</fieldManageability>
+    <inlineHelpText>Field containing the Id of the parent record. Not used in Files lists
+Example: For a Cases list on an Account page, AccountId is used for retrieving Cases related to the parent account</inlineHelpText>
+    <label>Parent Id Field (Not for Files Lists)</label>
+    <length>255</length>
+    <required>false</required>
+    <type>Text</type>
+    <unique>false</unique>
+</CustomField>

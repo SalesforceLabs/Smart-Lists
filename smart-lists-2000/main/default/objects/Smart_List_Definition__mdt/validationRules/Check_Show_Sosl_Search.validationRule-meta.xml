@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Check_Show_Sosl_Search</fullName>
+    <active>false</active>
+    <errorConditionFormula>false</errorConditionFormula>
+    <errorDisplayField>Show_SOSL_Search_in_Quick_Filter__c</errorDisplayField>
+    <errorMessage>Show SOQL Search in Quick Filter cannot be selected with the My Team records scope</errorMessage>
+</ValidationRule>

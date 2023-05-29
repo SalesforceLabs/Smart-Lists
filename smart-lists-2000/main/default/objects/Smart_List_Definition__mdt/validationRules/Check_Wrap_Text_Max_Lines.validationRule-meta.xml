@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Check_Wrap_Text_Max_Lines</fullName>
+    <active>true</active>
+    <errorConditionFormula>Wrap_Text_Max_Lines__c &lt;= 0</errorConditionFormula>
+    <errorDisplayField>Wrap_Text_Max_Lines__c</errorDisplayField>
+    <errorMessage>Wrap Text Max Lines must be greater than 0</errorMessage>
+</ValidationRule>

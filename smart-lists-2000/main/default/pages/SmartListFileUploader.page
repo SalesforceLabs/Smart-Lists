@@ -1,0 +1,66 @@
+<apex:page >
+    <script>
+        // Upload file data
+        function uploadFile(file, fileMetadata, origin) {
+            var reader = new FileReader();
+            reader.readAsArrayBuffer(file);
+            reader.onload = function () {
+                postFile(reader.result, fileMetadata, file.name, origin);
+            };
+            reader.onerror = function (error) {
+                postToLWC({error: "Failed to create binary file: " + error}, origin);
+            };
+        }
+
+        // Make REST API call for posting new content version
+        function postFile(fileData, fileMetadata, filename, origin) {
+            const token = '{!$Api.Session_ID}';
+            const formData = new FormData();
+            const mdPart = new File([JSON.stringify(fileMetadata)], "", { type: "application/json" });
+            formData.append('entity_content', mdPart);
+            const filePart = new Blob([fileData], { type: "application/octet-stream"});
+            formData.append('VersionData', filePart);
+            const request = {
+                method: 'POST',
+                headers: {
+                    'Authorization': 'Bearer ' + token,
+                    'Accept': 'application/json'
+                },
+                body: formData
+            };
+            fetch("/services/data/v53.0/sobjects/ContentVersion", request)
+                .then(function(response) {
+                    if (response.status != 201) {
+                        throw new Error("CANT_UPLOAD_VERSION");
+                    }
+                    return response.json();
+                })
+                .then(result => {
+                    postToLWC({success: true, id: result.id, filename: filename}, origin);
+                })
+                .catch(error => {
+                    console.log('Error:', error);
+                    let err;
+                    if (error === 'CANT_UPLOAD_VERSION')
+                        err = "{!$Label.ErrorMsgCantUploadNewVersion}";
+                    else
+                        err = "{!$Label.ErrorMsgCantUploadNewVersion}" + error
+                    postToLWC({error: err}, origin);
+                });
+        }
+
+        // EventListener for handling LWC messages
+        window.addEventListener("message", function(event) {
+            const origin  = event.origin.split('.');
+            const host = '{!URLFOR("/", null)}'.split('.'); 
+            if (origin[0] === host[0]) {
+                const uploadData = event.data;
+                uploadFile(uploadData.file, uploadData.fileMetadata, event.origin);
+            }
+        });
+        // Send data to LWC
+        function postToLWC(message, origin) {
+            window.parent.postMessage(message, origin);
+        }
+    </script>
+</apex:page>

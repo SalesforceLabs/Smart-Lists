@@ -1,0 +1,23 @@
+.sl-footer {
+    background-color: rgb(243, 242, 242);
+    border-top-color: rgb(221, 219, 218);
+    border-top-style: solid;
+    border-top-width: 2px;
+    box-sizing: border-box;
+    padding-top: 8px;
+    padding-bottom: 8px;
+    padding-left: 16px;
+    padding-right: 16px;
+}
+.sl-helptext {
+    position: absolute;
+    left: 16.25rem;
+    top: -0.15rem;
+}
+.sl-clear-input {
+    margin-top: 1.75rem;
+}
+.sl-clear-lookup-object-selector {
+    position: relative;
+    top: 2rem;
+}

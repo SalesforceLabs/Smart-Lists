@@ -1,0 +1,692 @@
+import { LightningElement, api } from "lwc";
+import { ShowToastEvent } from "lightning/platformShowToastEvent";
+
+import getListParameters from "@salesforce/apex/SmartListController.getListParameters";
+import getPage from "@salesforce/apex/SmartListController.getPage";
+import getRecord from "@salesforce/apex/SmartListController.getRecord";
+import runFlow from "@salesforce/apex/SmartListController.runFlow";
+
+import labelRefresh from "@salesforce/label/c.Refresh";
+import labelShowQuickFilters from "@salesforce/label/c.ShowQuickFilters";
+import labelHideQuickFilters from "@salesforce/label/c.HideQuickFilters";
+import labelItemSingular from "@salesforce/label/c.ItemSingular";
+import labelItemPlural from "@salesforce/label/c.ItemPlural";
+import labelSelectedSingular from "@salesforce/label/c.SelectedSingular";
+import labelSelectedPlural from "@salesforce/label/c.SelectedPlural";
+import labelSortedBy from "@salesforce/label/c.SortedBy";
+import labelFilteredBy from "@salesforce/label/c.FilteredBy";
+import labelLoading from "@salesforce/label/c.Loading";
+import labelMinRowSelectionError from "@salesforce/label/c.MinRowSelectionError";
+import labelFilterSelection from "@salesforce/label/c.FilterSelection";
+import labelVisibilityFilterSelection from "@salesforce/label/c.VisibilityFilterSelection";
+import labelSortFieldSelection from "@salesforce/label/c.SortFieldSelection";
+import labelSortAscending from "@salesforce/label/c.SortAscending";
+import labelSortDescending from "@salesforce/label/c.SortDescending";
+import labelFilterSOSLSearchTooShortError from "@salesforce/label/c.FilterSOSLSearchTooShortError";
+import labelSearchBoxPlaceholder from "@salesforce/label/c.SearchBoxPlaceholder";
+import labelSearchBoxLabel from "@salesforce/label/c.SearchBoxLabel";
+
+export default class SmartListShared extends LightningElement {
+    // PARAMETERS FROM LWC
+    // Id of the parent record 
+    @api recordId;
+
+    // LIST PARAMETERS DEFINED IN THE UI (AppBuilder, Flow...)
+    // List Definition name
+    @api listName;
+    @api inRecordPage = false;
+    @api inTab = false;
+    @api flow = false;
+    // Min row selected for Screenflow
+    @api minRowSelected;
+    community;
+
+    // LIST HEADER
+    icon;
+    get iconSize() {
+        return this.inRecordPage ? "small" : "medium";
+    }
+    title;
+    errorMsg;
+    // ITEMS SECTION
+    get itemsCount() {
+        if (this.hasSelectedRecords)
+            return this.recordViewer.selectedRecordsCount;
+        else
+            return this.recordViewer.recordsCount + (this.recordViewer.canLoadData || this.maxRecordsLoaded ? '+' : '');
+    }
+    get itemsLabel() {
+        if (this.recordViewer.selectedRecordsCount == 1)
+            return this.labels.labelItemSingular + ' ' + this.labels.labelSelectedSingular;
+        else if (this.hasSelectedRecords)
+            return this.labels.labelItemPlural + " " + this.labels.labelSelectedPlural;
+        else
+            return this.recordViewer.recordsCount == 1 ? this.labels.labelItemSingular : this.labels.labelItemPlural;
+    }
+    // Object containing the labels of the sortable fields
+    sortFieldsLabels;
+    // Label of the sort field
+    sortFieldLabel;
+    // Labels of the fields used in the filter
+    filterByFields;
+    // True if max records loaded
+    maxRecordsLoaded;
+
+    // LABELS
+    labels = {
+        labelRefresh,
+        labelShowQuickFilters,
+        labelHideQuickFilters,
+        labelItemSingular,
+        labelItemPlural,
+        labelSelectedSingular,
+        labelSelectedPlural,
+        labelSortedBy,
+        labelFilteredBy,
+        labelLoading,
+        labelMinRowSelectionError,
+        labelFilterSelection,
+        labelVisibilityFilterSelection,
+        labelSortFieldSelection,
+        labelSortAscending,
+        labelSortDescending,
+        labelFilterSOSLSearchTooShortError,
+        labelSearchBoxPlaceholder,
+        labelSearchBoxLabel
+    };
+
+    // GET RECORDS VARIABLES
+    objectName;
+    nameField;
+    parentId;
+    parentIdField;
+    queryFields;
+    filterFields = "";
+    filterEntries = [];
+    filterEntriesPanel = [];
+    currentListFilter;
+    currentSoqlScope;
+
+    // VIEWER DATA
+    displayMode;
+    isLoading = false;
+
+    // FILTERS DATA
+    // List of filters for UI
+    listFilters = [];
+    // List of SOQL scopes for UI
+    soqlScopes = [];
+
+    // ACTIONS
+    // List of standard list actions for UI
+    standardListActions = [];
+    // List of custom list actions for UI
+    customListActions = [];
+    // List of row actions for UI
+    rowActions = [];
+    // Custom actions dictionary: retrieve action data from action key in action handlers
+    custActionsDict = {};
+    // Object label for record actions
+    objectLabel;
+    // Records types for New record
+    recordTypes = [];
+    // Current Screenflow Action: parm for ScreenFlowModal and used for endFlow
+    currentFlowAction;
+    // Rows used by the flow action: row for row actions, selected rows for list actions
+    flowRows;
+
+    // ROW SELECTION
+    // Returns if true if selected records in viewer
+    @api get hasSelectedRecords() {
+        return this.recordViewer.hasSelectedRecords;
+    }
+    @api get hasNoSelectedRecords() {
+        return this.recordViewer.hasNoSelectedRecords;
+    }
+    // Returns first selected record for Screenflow
+    @api get selectedRecord() {
+        return this.recordViewer.selectedRecord;
+    }
+    // Returns selected records for Screenflow
+    @api get selectedRecords() {
+        return this.recordViewer.selectedRecords;
+    }
+    // Returns selected records for Screenflow
+    @api get selectedRecordsCount() {
+        return this.recordViewer.selectedRecordsCount;
+    }
+
+    // QUICK FILTERS
+    // Title of the Quick Filters toggle button: dynamic label displayed/not displayed
+    quickFiltersTitle = this.labels.labelShowQuickFilters;
+    // If false, Quick Filters panel can't be closed: displayed all the time
+    canCloseQuickFilters = false;
+    get filterPanelClass() {
+        return (this.showQuickFilters) ? 'slds-col slds-no-flex' : 'slds-col slds-no-flex slds-hide';
+    }
+
+    // SORT DATA
+    get sortDirectionIcon() {
+        return this.recordViewer.sortDirection == 'asc' ? 'utility:arrowup' : 'utility:arrowdown';
+    }
+    get sortDirectionTitle() {
+        return this.recordViewer.sortDirection == 'asc' ? this.labels.labelSortAscending : this.labels.labelSortDescending;
+    }
+
+
+    // UI CONTROL
+    // Maximum of the viewer
+    viewerMaxWidth;
+    // Quick Filters are displayed/Hidden
+    showQuickFilters = false;
+    // Spinner is displayed: initialization and auto-launched flow action execution
+    showSpinner = false;
+    // List of SOQL scope displayed/hidden
+    showScopes = false;
+    // List of filters displayed/hidden
+    showFilters = false;
+    // Sort menu displayed/hidden
+    showSort = false;
+    // Show/hide Delete Record modal 
+    showDeleteRecordModal = false;
+    // Show/hide Screenflow modal 
+    showScreenFlowModal = false;
+    // Initialization flags 
+    @api initializedContext = false;
+    get initializationContext() {
+        return !this.initializedContext;
+    }
+    get articleClass() {
+        let cls = "slds-card slds-card_boundary sl-component-container";
+        return this.flow ? cls += " sl-flow-context" : this.community ? cls += " sl-community-context" : cls += " sl-app-context";
+    }
+    get pageHeaderClass() {
+        let cls = "slds-page-header";
+        return this.flow ? cls += " sl-flow-context" : this.community ? cls += " sl-community-context" : cls;
+    }
+
+    // GET UI COMPONENTS
+    _componentContainer;
+    get componentContainer() {
+        if (!this._componentContainer)
+            this._componentContainer = this.template.querySelector(".sl-component-container");
+        return this._componentContainer;
+    }
+    _viewerPanel;
+    get viewerPanel() {
+        if (!this._viewerPanel)
+            this._viewerPanel = this.template.querySelector(".sl-viewer-panel");
+        return this._viewerPanel;
+    }
+    _recordViewer;
+    @api get recordViewer() {
+        if (!this._recordViewer)
+            this._recordViewer = this.template.querySelector( 'c-record-viewer');
+        return this._recordViewer;
+    }
+    _filterPanel;
+    get filterPanel() {
+        if (!this._filterPanel)
+            this._filterPanel = this.template.querySelector('c-filter-panel');
+        return this._filterPanel;
+    }
+    _soslSearchTooltip
+    get soslSearchTooltip() {
+        if (!this._soslSearchTooltip)
+            this._soslSearchTooltip = this.template.querySelector('.sl-tooltip');
+        return this._soslSearchTooltip;
+    }
+
+    // COMPONENT INITIALIZATION FLOW
+    // - recordViewer send ready notification
+    // - initialize: 
+    //      - Perform initialization from list definition
+    //      - Notify parent SmartList that parent initialization is needed
+    // - parentInitialized: 
+    //      - invoked by parent for completing initialization
+    //      - initialize record viewer with data provided by parent
+    viewerReady = false;
+    handleViewerReady(event) {
+        if (!this.viewerReady) {
+            this.viewerReady = true;
+            this.initialize();
+        }
+    }
+
+    // Initialize: 
+    //      - Read list parameters & store parameters; notify parent
+    //      - Initialize Quick Filters 
+    //      - Prepare data for row/list actions
+    initialize() {
+        this.showSpinner = true;
+        // Retrieve list parameters from custom metadata
+        getListParameters({ listName: this.listName, recordId: this.recordId, flow: this.flow })
+            .then((result) => {
+                const listDef = JSON.parse(result);
+                this.icon = listDef.listIcon;
+                this.title = listDef.listLabel;
+                this.dataSourceType = listDef.dataSourceType;
+                this.dataProviderClass = listDef.dataProviderClass;
+                this.displayMode = listDef.displayMode;
+                this.objectName = listDef.objectName;
+                this.objectLabel = listDef.objectLabel;
+                this.nameField = listDef.nameField;
+                this.recordTypes = listDef.recordTypes;
+                this.parentId = listDef.parentId;
+                this.parentIdField = listDef.parentIdField;
+                this.community = listDef.community;
+                this.currentSoqlScope = listDef.defaultSoqlScope;
+                this.soqlScopes = listDef.soqlScopes;
+                this.showScopes = this.soqlScopes.length > 1;
+                const filters = listDef.filters;
+                if (filters.length > 0) {
+                    this.currentListFilter = filters[0].value;
+                    if (filters.length > 1) {
+                        for (let filter of filters) {
+                            if (filter.defaultFilter) {
+                                this.currentListFilter = filter.value;
+                                break;
+                            }
+                        }
+                        this.listFilters = filters.sort(function (a, b) {
+                            if (a.label < b.label) return -1;
+                            else if (a.label > b.label) return 1;
+                            else return 0;
+                        });
+                        this.showFilters = true;
+                    }
+                }
+                if (listDef.customListActions) {
+                    const listActions = [];
+                    for (let action of listDef.customListActions) {
+                        this.custActionsDict[action.key] = action;
+                        listActions.push(action);
+                    }
+                    this.customListActions = listActions;
+                }
+                if (listDef.rowActions) {
+                    for (const action of listDef.rowActions) {
+                        if (action.key.startsWith('cust_'))
+                            this.custActionsDict[action.key] = action;
+                    }
+                    this.rowActions = listDef.rowActions;
+                }
+                this.queryFields = listDef.queryFields;
+                this.maxRowSelected = listDef.maxRowSelected;
+                // Add smartListShared properties to listDef which are needed by initialization process
+                listDef.flow = this.flow;
+                // Build Quick Filters model and initialize Quick Filters values
+                this.filterPanel.buildFilterModel(listDef.fields, listDef.showSOSLSearchInQuickFilters, listDef.dataSourceType);
+                if (this.filterPanel.hasFilters) {
+                    // Display Quick Filters button when Quick Filters are not displayed all the time
+                    this.canCloseQuickFilters = !listDef.displayQuickFiltersAllTheTime;
+                    // Display Quick Filters if must be displayed all the time
+                    this.showQuickFilters = listDef.displayQuickFiltersAllTheTime;
+                }
+                else
+                    this.canCloseQuickFilters = false;
+                this.showSOSLSearch = (listDef.showSOSLSearchInComponent && this.filterPanel.hasSearchableFieds);
+                // Request initialization data from parent 
+                this.dispatchEvent(
+                    new CustomEvent("initialize", { detail: listDef }));
+            })
+            .catch((error) => {
+                this.showSpinner = false;
+                this.displayErrorInList(error);
+            });
+    }
+
+    // parentInitialized: invoked by parent for completing initialization
+    //      - store parameters initialized by parent
+    //      - initialize viewer
+    //      - load first page of records
+    @api parentInitialized(listDef) {
+        this.recordViewer.initialize(listDef);
+        // Load first page of records with sort order
+        this.loadFirstPage();
+        this.showSpinner = false;
+        this.showSort = this.displayMode == 'Tiles' && this.recordViewer.sortFields.length > 0;
+        this.initializedContext = true;
+    }
+
+    isRendered = false;
+    // Set the maximum width of the viewer the 1st time the comp is rendered
+    renderedCallback() {
+        // Init list max width without Quick Filters and size list according to Quick Filters displayed all the time or not
+        if (!this.isRendered && this.initializedContext) {
+            window.addEventListener("resize", this.handleResizeWindow.bind(this));
+            this.isRendered = true;
+        }
+        this.setListWidth();
+    }
+
+    // Adjust the list max width when the window is resized
+    handleResizeWindow() {
+        this.setListWidth();
+    }
+
+    borders;
+    setListWidth() {
+        const componentContainer = this.componentContainer;
+        if (componentContainer && componentContainer.offsetWidth > 0) {
+            if (!this.borders) {
+                const style = getComputedStyle(componentContainer);
+                this.borders = parseInt(style.borderLeftWidth) || 0;
+                this.borders += parseInt(style.borderRightWidth) || 0;
+            }
+            if (this.viewerMaxWidth !== componentContainer.offsetWidth - this.borders) {
+                this.viewerMaxWidth = componentContainer.offsetWidth - this.borders;
+                this.viewerPanel.style.width = this.viewerMaxWidth + "px";
+            }
+        }
+    }
+
+    // Load the first page of the datatable
+    @api loadFirstPage() {
+        this.recordViewer.canLoadData = false;
+        this.loadPage(true, false);
+    }
+
+    // Handle load all records event
+    handleLoadAll() {
+       this.loadPage(false, true);
+    }
+
+    // Load the next page of the datatable: infinite scrolling
+    handleLoadMore() {
+        this.loadPage(false, false);
+    }
+
+    // Load a datatable page
+    loadPage(replaceRecords, loadAll) {
+        //Display a spinner to signal that data is being loaded
+        this.isLoading = true;
+        this.showSpinner = true;
+        const offset = replaceRecords ? 0 : this.recordViewer.recordsCount;
+        const pageSize = this.recordViewer.pageSize;
+        const maxRecords = this.recordViewer.maxRecords;
+        const truncatePage = !loadAll && (offset + pageSize > maxRecords); 
+        const pageRecs = (loadAll || truncatePage) ? maxRecords - offset : pageSize;
+        getPage({
+            dataSourceType: this.dataSourceType,
+            dataProviderClass: this.dataProviderClass,
+            objectName: this.objectName,
+            listFilter: this.currentListFilter,
+            soqlScope: this.currentSoqlScope,
+            filterEntries: this.filterEntries,
+            parentIdField: this.parentIdField,
+            parentId: this.parentId,
+            queryFields: this.queryFields,
+            sortField: this.recordViewer.sortField,
+            sortDirection: this.recordViewer.sortDirection,
+            offset: offset,
+            pageSize: pageRecs
+        })
+            .then((result) => {
+                const pageRecords = result;
+                //console.log("getPage " + JSON.stringify(result));
+                //console.log("relFields " +JSON.stringify(this.relFields) + '\n');
+                const loadedRecords = pageRecords.length;
+                const allRecordsLoaded = (!loadAll && loadedRecords < pageRecs) || (loadAll && (offset + loadedRecords < maxRecords));
+                this.maxRecordsLoaded = !allRecordsLoaded && ((!loadAll && truncatePage) || (loadAll && (offset + loadedRecords == maxRecords)));
+                const spr = Date.now();
+                this.recordViewer.setRecordsPage(pageRecords, replaceRecords, this.maxRecordsLoaded, allRecordsLoaded);
+                this.isLoading = false;
+                this.showSpinner = false;
+            })
+            .catch((error) => {
+                this.displayErrorInList(error);
+            });
+    }
+
+    // Sort updated in datatable
+    handleSortUpdate() {
+        this.loadFirstPage();
+    }
+
+    // Sort field updated in component
+    handleSortField(event) {
+        this.recordViewer.sortField = event.detail.value;
+        this.loadFirstPage();
+    }
+
+    // Sort direction updated in component
+    handleSortDirection() {
+        this.recordViewer.sortDirection = this.recordViewer.sortDirection == 'asc' ? 'desc' : 'asc';
+        this.loadFirstPage();
+    }
+
+    // New filter selected in filters combobox
+    handleChangeFilter(event) {
+        this.currentListFilter = event.detail.value;
+        this.loadFirstPage();
+    }
+
+    // New scope selected in scopes combobox
+    handleChangeScope(event) {
+        this.currentSoqlScope = event.detail.value;
+        this.loadFirstPage();
+    }
+
+    // Refresh button has been clicked
+    handleRefresh() {
+        this.loadFirstPage();
+    }
+
+    // Show/Hide quick filters panel
+    handleShowQuickFilters() {
+        this.showQuickFilters = !this.showQuickFilters;
+        this.quickFiltersTitle = this.showQuickFilters
+            ? this.labels.labelHideQuickFilters
+            : this.labels.labelShowQuickFilters;
+        this.setListWidth();
+    }
+
+    // Apply filter defined in quick filters panel
+    handleApplyFilter(event) {
+        this.filterEntriesPanel = event.detail.filterEntries;
+        this.filterByFields = event.detail.filterByFields;
+        this.applyFilter();
+    }
+
+    // Update SOSL search if entry is valid
+    handleSOSLSearchKeyup(event) {
+        if (event.keyCode === 13) {
+            const value = event.target.value;
+            if (value && value.length === 1)
+                	this.displayError(this.labels.labelFilterSOSLSearchTooShortError, null)
+            else {
+                this.soslSearch = value;
+                this.applyFilter();
+            }
+        }
+    }
+
+    // The SOSL search input got the focus: display the searchable fields if needed
+    handleSOSLSearchFocus() {
+        if (this.filterPanel.nonSearchableFields)
+            this.updateSOSLSearchTooltip(true);
+    }
+    // The SOSL search input lost the focus: check value validity
+    handleSOSLSearchBlur() {
+        if (this.filterPanel.nonSearchableFields)
+            this.updateSOSLSearchTooltip(false);
+    }
+
+    // Toggle visibility of the SOSL Search tooltip
+    updateSOSLSearchTooltip(flag) {
+        this.soslSearchTooltip.style.visibility = flag ? 'visible' : 'hidden';
+    }
+
+    // Reload page with new filter if search data updated in Filters widget or SOSL search
+    applyFilter() {
+        const filterEntries = this.filterEntriesPanel && this.filterEntriesPanel.length > 0 ? this.filterEntriesPanel : [];
+        if (this.showSOSLSearch && this.soslSearch)
+            filterEntries.push({"fieldName":this.filterPanel.SOSL_SEARCH_FIELD_NAME,"values":[this.soslSearch],"type":"Text"})
+        this.filterEntries = [...filterEntries];
+        this.loadFirstPage();
+    }
+
+    // A datatable row action has been selected
+    handleRowAction(event) {
+        const key = event.detail.key;
+        if (key.startsWith('std_'))
+            this.dispatchEvent(new CustomEvent('rowaction', event));
+        else if (key.startsWith('cust_')) {
+            let rows = [];
+            rows.push(event.detail.row);
+            this.executeFlowAction(key, rows);
+        }
+    }
+
+    // A list action has been selected
+    handleListAction(event) {
+        this.executeFlowAction(event.target.name, this.selectedRecords);
+    }
+
+    // Execute flow list/row action
+    executeFlowAction(key, rows) {
+        const action = this.custActionsDict[key];
+        if (action) {
+            this.currentFlowAction = action;
+            this.flowRows = rows;
+            if (action.category === 'Screen Flow') {
+                this.showScreenFlowModal = true;
+            } else {
+                this.showSpinner = true;
+                runFlow({ flowName: action.flowName, records: rows }).then(result => {
+                    this.endFlow(result);
+                }).catch((error) => {
+                    this.displayError(error);
+                });
+            }
+        }
+    }
+
+    // Screenflow Modal has been closed
+    handleCloseScreenFlow(event) {
+        this.showScreenFlowModal = false;
+        if (event.detail.action === 'done')
+            this.endFlow(event.detail.data);
+    }
+
+    // Flow has been executed
+    endFlow(result) {
+        this.showSpinner = false;
+        if (result.successMsg)
+            this.displaySuccess(result.successMsg);
+        else if (result.errorMsg)
+            this.displayError(result.errorMsg);
+        // Clear selection in viewer in case they are no longer displayed after the action because of filter
+        if (this.currentFlowAction.refreshList) {
+            this.recordViewer.clearSelection();
+            this.loadFirstPage();
+        }
+        else if (this.currentFlowAction.refreshRow)
+            this.refreshRecord(this.flowRows[0].Id, this.flowRows[0].Id);
+    }
+
+    // Delete Record or File row action has been selected
+    // In Shared because used for Record and File
+    @api handleDeleteRecord(id, message) {
+        this.currentRecordId = id;
+        this.deleteRecordMessage = message;
+        this.showDeleteRecordModal = true;
+    }
+
+    // Delete Record Modal has been closed
+    handleCloseDeleteRecord(event) {
+        this.showDeleteRecordModal = false;
+        this.currentRecordId = null;
+        if (event.detail.action === 'success') {
+            this.loadFirstPage();
+            this.displaySuccess(event.detail.msg, null);
+        } else if (event.detail.action === 'error')
+            this.displayError(event.detail.msg, event.detail.title);
+    }
+
+
+    // Refresh a record from the database
+    @api refreshRecord(newId, oldId) {
+        getRecord({
+            dataSourceType: this.dataSourceType, dataProviderClass: this.dataProviderClass, id: newId, objectName: this.objectName, queryFields: this.queryFields
+        }).then((result) => {
+            this.recordViewer.refreshRecord(result[0], newId, oldId);
+        }).catch((error) => {
+            this.displayErrorInList(error);
+        });
+    }
+
+    // Validate row selection in screenflows
+    @api
+    validate() {
+        if (!this.minRowSelected || this.selectedRecords.length >= this.minRowSelected) {
+            return { isValid: true };
+        }
+        else {
+            return {
+                isValid: false,
+                errorMessage: this.labels.labelMinRowSelectionError.replace('{0}', this.minRowSelected)
+            };
+        }
+    }
+
+    displayErrorInList(msg) {
+        let errorMsg = this.parseError(msg);
+        console.log(errorMsg);
+        if (errorMsg && errorMsg.includes("###")) {
+            const parts = errorMsg.split("###");
+            errorMsg = parts[0];
+        }
+        this.errorMsg = errorMsg;
+    }
+
+    // Display success or error message
+    displayMessage(variant, msg, title) {
+        this.dispatchEvent(
+            new ShowToastEvent({ title: title ? title : variant.toUpperCase(), message: msg, variant: variant })
+        );
+    }
+
+    // Display success message
+    @api displaySuccess(msg, title) {
+        this.displayMessage("success", msg, title);
+    }
+
+    // Display waring message
+    @api displayWarning(msg, title) {
+        this.displayMessage("warning", msg, title);
+    }
+
+    // Display error message
+    @api displayError(error, title) {
+        this.displayMessage("error", this.parseError(error), title);
+    }
+
+    // Parse error
+    parseError(error) {
+        let msg = '';
+        if (error.body && error.body.output) {
+            msg = error.body.message;
+            if (error.body.output.errors.length > 0)
+                msg += "\n" + error.body.output.errors[0].message;
+            msg += "\nOutput " + JSON.stringify(error.body.output);
+        } else if (Array.isArray(error.body) && error.body.length > 0) {
+            msg = error.body[0].message;
+            msg += "\n" + error.body[0].errorCode;
+        } else if (error.body && error.body.message) {
+            msg = error.body.message;
+        } else if (error.body && error.body.error) {
+            msg = error.body.error;
+        } else if (error.body) {
+            msg = error.body;
+        } else if (error.statusText) {
+            msg.error = error.statusText;
+        } else if (error.message) {
+            msg = error.message;
+        } else {
+            msg = error;
+        }
+        return msg;
+    }
+}

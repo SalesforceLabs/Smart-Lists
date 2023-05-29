@@ -1,0 +1,24 @@
+.sl-app-context {
+    background-color: var(--lwc-colorBackground);
+}
+.sl-community-context {
+    background-color: var(--lwc-colorContentAreaBackground,rgb(255, 255, 255));
+    border:none;
+}
+.sl-flow-context {
+    background-color: var(--slds-g-color-neutral-base-95,rgb(255, 255, 255));
+    border-radius: 0px!important;
+}
+.sl-search-box {
+    width: var(--lwc-sizeSmall);
+}
+.sl-tooltip-container {
+    position: relative;
+}
+.sl-tooltip {
+    position:absolute;
+    top: 2.5rem;
+    right:0px;
+    width:100%;
+    visibility: hidden;
+}

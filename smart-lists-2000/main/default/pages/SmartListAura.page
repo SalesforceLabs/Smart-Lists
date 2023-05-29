@@ -1,0 +1,45 @@
+<apex:page showHeader="false" sidebar="false" lightningStylesheets="true">
+    <html>
+    <head>
+        <apex:includeLightning />
+    </head>
+    <body class="slds-scope">
+        <div id="auraComp"/>
+        <script>
+            /*var lwcOrigin = '*';
+            console.log('VF location ' + window.location);*/
+            /*** EventListener to GET response from LWC  ***/
+            window.addEventListener("message", function(event) {
+                const message = event.data;//JSON.parse(event.data);
+                const origin  = event.origin.split('.');
+                const host = '{!URLFOR("/", null)}'.split('.'); 
+                if (origin[0] === host[0]) {
+                    if (message.action === 'runflow')
+                        runflow(message.flowName, message.records)
+                }
+            });
+            function runflow(flowName, records) {
+                $Lightning.use("smartlists:screenFlowApp", function () {
+                    // Create the flow component and set the onstatuschange attribute
+                    var inputVariables = [{ name : "records", type : "SObject", value: JSON.parse(records) }];
+                    $Lightning.createComponent("lightning:flow", {"onstatuschange": flowStatusChange},
+                        "auraComp", function (component) { 
+                            component.startFlow(flowName, inputVariables); 
+                        }
+                    );
+                });
+            }
+            function flowStatusChange(event) {
+                if (event.getParam("status") === 'STARTED')
+                    postToLWC({event: 'started'});
+                else if (event.getParam("status") === 'FINISHED') 
+                    postToLWC({ event: 'finished', flowParams: event.getParam("outputVariables")});
+            };
+            function postToLWC(message) {
+                window.parent.postMessage(message, '*'/*lwcOrigin*/);
+            }
+            postToLWC({event: 'initialized'});
+        </script>
+    </body>
+    </html>
+</apex:page>

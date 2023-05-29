@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Enable_CRUD_Actions__c</fullName>
+    <defaultValue>false</defaultValue>
+    <externalId>false</externalId>
+    <fieldManageability>DeveloperControlled</fieldManageability>
+    <inlineHelpText>If checked, New, Edit and Delete record actions are available in the list if the running user has the corresponding permissions on the object</inlineHelpText>
+    <label>Enable all Record Actions</label>
+    <type>Checkbox</type>
+</CustomField>

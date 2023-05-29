@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Sortable_in_List__c</fullName>
+    <defaultValue>&apos;Yes if Sortable&apos;</defaultValue>
+    <externalId>false</externalId>
+    <fieldManageability>DeveloperControlled</fieldManageability>
+    <inlineHelpText>if &apos;Yes if Sortable&apos; is selected, the field will be sortable in the list if the data type of the field is sortable in Salesforce. Example: Text is sortable and Text Area Long is not</inlineHelpText>
+    <label>Sortable in List</label>
+    <required>false</required>
+    <type>Picklist</type>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>Yes if Sortable</fullName>
+                <default>true</default>
+                <label>Yes if Sortable</label>
+            </value>
+            <value>
+                <fullName>No</fullName>
+                <default>false</default>
+                <label>No</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

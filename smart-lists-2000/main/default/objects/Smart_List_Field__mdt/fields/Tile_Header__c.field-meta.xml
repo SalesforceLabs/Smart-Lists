@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Tile_Header__c</fullName>
+    <defaultValue>false</defaultValue>
+    <externalId>false</externalId>
+    <fieldManageability>DeveloperControlled</fieldManageability>
+    <inlineHelpText>If checked, the field is part of the Tite header, otherwise it is part of the tile content</inlineHelpText>
+    <label>Display in Tile Header</label>
+    <type>Checkbox</type>
+</CustomField>

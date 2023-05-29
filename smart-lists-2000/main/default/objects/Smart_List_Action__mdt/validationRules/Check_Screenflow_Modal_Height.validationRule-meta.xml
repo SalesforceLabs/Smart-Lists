@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Check_Screenflow_Modal_Height</fullName>
+    <active>true</active>
+    <errorConditionFormula>ISPICKVAL(Category__c , &apos;Screen Flow&apos;) &amp;&amp; ISBLANK(Screenflow_Modal_Height__c )</errorConditionFormula>
+    <errorDisplayField>Screenflow_Modal_Height__c</errorDisplayField>
+    <errorMessage>Screenflow Modal Height is required for Category Screen Flow</errorMessage>
+</ValidationRule>

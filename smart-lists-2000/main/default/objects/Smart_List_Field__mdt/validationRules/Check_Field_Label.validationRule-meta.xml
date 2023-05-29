@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Check_Field_Label</fullName>
+    <active>true</active>
+    <errorConditionFormula>ISPICKVAL(Smart_List_Definition__r.Data_Source_Type__c, &apos;Apex Data Source&apos;) &amp;&amp; ISBLANK(Field_Label__c)</errorConditionFormula>
+    <errorDisplayField>Field_Label__c</errorDisplayField>
+    <errorMessage>Field Label is required for Apex Data Source lists.</errorMessage>
+</ValidationRule>

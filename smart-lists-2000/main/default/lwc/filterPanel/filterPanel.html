@@ -1,0 +1,175 @@
+<template>
+    <template lwc:if={initializedContext}>
+        <div class="slds-panel slds-size_medium slds-panel_docked slds-panel_docked-right slds-grid slds-grid_vertical">
+            <div class="slds-panel__header">
+                <h2 class="slds-panel__header-title slds-text-heading_small slds-truncate">
+                    {labels.labelQuickFilters}
+                </h2>
+                <template lwc:if={canClose}>
+                    <button
+                        class="id-quickFilterClose slds-button slds-button_icon slds-button_icon-small slds-panel__close"
+                        title={labels.labelClose} onmousedown={handleClose}>
+                        <lightning-icon size="x-small" icon-name="utility:close" alternative-text={labels.labelClose}
+                            title={labels.labelClose}></lightning-icon>
+                        <label></label>
+                    </button>
+                </template>
+            </div>
+            <form onsubmit={handleApply}>
+                <div class="slds-panel__body slds-grid slds-grow">
+                    <div class="slds-filters slds-col filterBody">
+                        <template for:each={filterModel} for:item="item">
+                            <div key={item.fieldName} class="slds-var-p-bottom_medium slds-is-relative">
+                                <template lwc:if={item.isSosl}>
+                                    <div class="slds-grid">
+                                            <lightning-input type={item.inputType} data-name={item.fieldName}
+                                                name={item.fieldName} class="slds-col slds-no-space"
+                                                label={item.fieldLabel} autocomplete="off" onchange={handleInputChange}
+                                                onblur={handleSOSLSearchBlur}>
+                                            </lightning-input>
+                                            <lightning-helptext content={nonSearchableFields} class="sl-helptext"></lightning-helptext>
+                                        <lightning-button-icon icon-name="utility:clear" variant="bare"
+                                            data-clear={item.fieldName} alternative-text={labels.labelClear}
+                                            class="slds-col slds-no-flex slds-var-m-left_xx-small sl-clear-input"
+                                            onmousedown={handleClearFilter}>
+                                        </lightning-button-icon>
+                                    </div>
+                                </template>
+                                <template lwc:elseif={item.isSingle}>
+                                    <div class="slds-grid">
+                                        <lightning-input type={item.inputType} data-name={item.fieldName}
+                                            name={item.fieldName} class="slds-col slds-no-space" label={item.fieldLabel}
+                                            autocomplete="off" onchange={handleInputChange}>
+                                        </lightning-input>
+                                        <lightning-button-icon icon-name="utility:clear" variant="bare"
+                                            data-clear={item.fieldName} alternative-text={labels.labelClear}
+                                            class="slds-col slds-no-flex slds-var-m-left_xx-small sl-clear-input"
+                                            onmousedown={handleClearFilter}>
+                                        </lightning-button-icon>
+                                    </div>
+                                </template>
+                                <template lwc:elseif={item.isBoolean}>
+                                    <div class="slds-grid">
+                                        <lightning-radio-group name={item.fieldName} data-name={item.fieldName}
+                                            class="slds-col slds-no-space" label={item.fieldLabel}
+                                            options={booleanOptions} type="radio"
+                                            onchange={handleInputChange}></lightning-radio-group>
+                                        <lightning-button-icon icon-name="utility:clear" variant="bare"
+                                            data-clear={item.fieldName} alternative-text={labels.labelClear}
+                                            class="slds-col slds-no-flex slds-var-m-left_xx-small slds-var-m-top_large"
+                                            onmousedown={handleClearFilter}>
+                                        </lightning-button-icon>
+                                    </div>
+                                </template>
+                                <template lwc:elseif={item.isRange}>
+                                    <fieldset class="slds-form-element slds-form-element_compound">
+                                        <legend class="slds-form-element__legend slds-form-element__label">
+                                            {item.fieldLabel}
+                                        </legend>
+                                        <div class="slds-form-element__control slds-grid">
+                                            <div class="slds-form-element__row slds-col slds-no-space">
+                                                <div class="slds-size_1-of-2">
+                                                    <template lwc:if={item.isNumberRange}>
+                                                        <lightning-input type="number" step={item.step}
+                                                            data-name={item.minName} name={item.minName}
+                                                            label={item.minLabel} autocomplete="off"
+                                                            onchange={handleInputChange} onblur={handleRangeBlur}>
+                                                        </lightning-input>
+                                                    </template>
+                                                    <template lwc:else>
+                                                        <lightning-input type={item.inputType} data-name={item.minName}
+                                                            name={item.minName} label={item.minLabel} autocomplete="off"
+                                                            onchange={handleInputChange} onblur={handleRangeBlur}>
+                                                        </lightning-input>
+                                                    </template>
+                                                </div>
+                                                <div class="slds-size_1-of-2">
+                                                    <template lwc:if={item.isNumberRange}>
+                                                        <lightning-input type="number" step={item.step}
+                                                            data-name={item.maxName} name={item.maxName}
+                                                            label={item.maxLabel} autocomplete="off"
+                                                            onchange={handleInputChange} onblur={handleRangeBlur}>
+                                                        </lightning-input>
+                                                    </template>
+                                                    <template lwc:else>
+                                                        <lightning-input type={item.inputType} data-name={item.maxName}
+                                                            name={item.maxName} label={item.maxLabel} autocomplete="off"
+                                                            onchange={handleInputChange} onblur={handleRangeBlur}>
+                                                        </lightning-input>
+                                                    </template>
+                                                </div>
+                                            </div>
+                                            <lightning-button-icon icon-name="utility:clear" variant="bare"
+                                                data-clearmin={item.minName} data-clearmax={item.maxName}
+                                                alternative-text={labels.labelClear}
+                                                class="slds-col slds-no-flex slds-var-m-left_xx-small slds-var-m-top_large"
+                                                onmousedown={handleClearFilter}>
+                                            </lightning-button-icon>
+                                        </div>
+                                    </fieldset>
+                                </template>
+                                <template lwc:elseif={item.isPicklist}>
+                                    <div class="slds-grid">
+                                        <div class="slds-col slds-no-space">
+                                            <lightning-checkbox-group name={item.fieldName} data-name={item.fieldName}
+                                                value=[] label={item.fieldLabel} options={item.options}
+                                                onchange={handlePicklistChange}></lightning-checkbox-group>
+                                            <template lwc:if={item.hasMoreValues}>
+                                                <lightning-button name={item.fieldName}
+                                                    data-hasmorename={item.fieldName} variant="base"
+                                                    label={labels.labelShowMore}
+                                                    onclick={handleSelectPicklistValues}></lightning-button>
+                                            </template>
+                                        </div>
+                                        <lightning-button-icon icon-name="utility:clear" variant="bare"
+                                            data-clear={item.fieldName} alternative-text={labels.labelClear}
+                                            class="slds-col slds-no-flex slds-var-m-left_xx-small slds-var-m-top_large"
+                                            onmousedown={handleClearFilter}>
+                                        </lightning-button-icon>
+                                    </div>
+                                </template>
+                                <template lwc:elseif={item.isLookup}>
+                                    <div class="slds-grid">
+                                        <c-lookup name={item.fieldName} data-name={item.fieldName}
+                                            objects={item.lookupData} onselectionchange={handleLookupChange}
+                                            label={item.fieldLabel} class="slds-col slds-no-space">
+                                        </c-lookup>
+                                        <lightning-button-icon icon-name="utility:clear" variant="bare"
+                                            data-clear={item.fieldName} alternative-text={labels.labelClear}
+                                            class={item.clearClass}
+                                            onmousedown={handleClearFilter}>
+                                        </lightning-button-icon>
+                                    </div>
+                                </template>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+                <template lwc:if={canShowFooter}>
+                    <div class="slds-grid slds-no-flex panel-footer slds-border_top sl-footer">
+                        <div class="slds-grid slds-wrap">
+                            <template if:true={canCancel}>
+                                <lightning-button class="slds-var-m-right_x-small" label={labels.labelCancel}
+                                    onmousedown={handleCancel}></lightning-button>
+                            </template>
+                            <template if:true={canClearAll}>
+                                <lightning-button variant="base" label={labels.labelClearAllFilters}
+                                    onmousedown={handleClearFilters}></lightning-button>
+                            </template>
+                        </div>
+                        <template lwc:if={canApply}>
+                            <span class="slds-grid slds-col slds-grid_align-end">
+                                <lightning-button variant="Brand" label={labels.labelApply} type="submit"
+                                    disabled={applyDisabled}></lightning-button>
+                            </span>
+                        </template>
+                    </div>
+                </template>
+            </form>
+        </div>
+    </template>
+    <template lwc:if={showPicklistModal}>
+        <c-filter-panel-picklist-modal context={picklistSelection} onclose={handleCloseSelectPicklistValues}>
+        </c-filter-panel-picklist-modal>
+    </template>
+</template>
