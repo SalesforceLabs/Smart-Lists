@@ -1,0 +1,29 @@
+{
+  "packageDirectories": [
+    {
+      "path": "smart-lists-2000",
+      "default": true,
+      "package": "SmartLists",
+      "versionName": "Summer 23",
+      "versionNumber": "3.1.0.0",
+      "ancestorVersion": "3.0.0.0"
+    }
+  ],
+  "name": "sflabs",
+  "namespace": "smartlists",
+  "sfdcLoginUrl": "https://login.salesforce.com",
+  "sourceApiVersion": "57.0",
+  "packageAliases": {
+    "SmartLists": "0Ho8b000000006ZCAQ",
+    "SmartLists@1.0.0-0": "04t8b000001BSBxAAO",
+    "SmartLists@1.0.0-1": "04t8b000000yr0TAAQ",
+    "SmartLists@1.1.0-0": "04t8b000000yr1lAAA",
+    "SmartLists@2.0.0-0": "04t8b000001BT3JAAW",
+    "SmartLists@2.1.0-0": "04t8b000001BTBNAA4",
+    "SmartLists@2.2.0": "04t8b000000jsKbAAI",
+    "SmartLists@2.3.0": "04t8b000000jsdoAAA",
+    "SmartLists@2.4.0": "04t8b000000jsoDAAQ",
+    "SmartLists@3.0.0": "04t8b000000gvxCAAQ",
+    "SmartLists@3.1.0": "04t8b000000gwAgAAI"
+  }
+}

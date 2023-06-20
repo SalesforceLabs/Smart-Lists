@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Check_SObject_APEX</fullName>
+    <active>true</active>
+    <errorConditionFormula>ISPICKVAL(Data_Source_Type__c, &apos;Apex Data Source&apos;) &amp;&amp; ISBLANK( SObject__c ) &amp;&amp; (Enable_CRUD_Actions__c ||  Enable_Delete_Record_Action__c ||  Enable_Edit_Record_Action__c ||  Enable_New_Record_Action__c)</errorConditionFormula>
+    <errorDisplayField>SObject__c</errorDisplayField>
+    <errorMessage>SObject is required when record actions are enabled on an Apex Data Source</errorMessage>
+</ValidationRule>

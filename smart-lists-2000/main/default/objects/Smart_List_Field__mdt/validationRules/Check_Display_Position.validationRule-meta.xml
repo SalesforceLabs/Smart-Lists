@@ -4,5 +4,5 @@
     <active>true</active>
     <errorConditionFormula>List_Field__c == true &amp;&amp; ISBLANK(Display_Position__c)</errorConditionFormula>
     <errorDisplayField>Display_Position__c</errorDisplayField>
-    <errorMessage>Display Position is required for list fields</errorMessage>
+    <errorMessage>Display Position is required for List fields</errorMessage>
 </ValidationRule>

@@ -135,6 +135,14 @@ export default class SmartListShared extends LightningElement {
     // Rows used by the flow action: row for row actions, selected rows for list actions
     flowRows;
 
+    // RECORDS
+    @api get records() {
+        return this.recordViewer.records;
+    }
+    @api get recordsCount() {
+        return this.recordViewer.recordsCount;
+    }
+
     // ROW SELECTION
     // Returns if true if selected records in viewer
     @api get hasSelectedRecords() {

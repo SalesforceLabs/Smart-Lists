@@ -66,10 +66,10 @@ export default class Lookup extends LightningElement {
 
     renderedCallback() {
         if (this.isListboxOpen) {
-            const constainerRect = this.template.querySelector('.slds-combobox__form-element').getBoundingClientRect();
-            const listbox = this.template.querySelector('.slds-dropdown');
+            const constainerRect = this.template.querySelector('.sl-container').getBoundingClientRect();
+            const listbox = this.template.querySelector('.sl_listbox');
             const listboxRect = listbox.getBoundingClientRect();
-            if (listboxRect.height <= constainerRect.height && constainerRect.bottom + listboxRect.height > document.documentElement.clientHeight)
+            if (listboxRect.height >= constainerRect.height && constainerRect.bottom + listboxRect.height > document.documentElement.clientHeight)
                 listbox.style.top = -(listboxRect.height + 4) + "px";
             else
                 listbox.style.top = (constainerRect.height) + "px";
@@ -315,7 +315,7 @@ export default class Lookup extends LightningElement {
     }
 
     get getContainerClass() {
-        return 'slds-combobox_container';
+        return 'sl-container slds-combobox_container';
     }
 
     get getDropdownClass() {

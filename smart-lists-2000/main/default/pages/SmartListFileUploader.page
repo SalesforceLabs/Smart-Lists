@@ -8,7 +8,7 @@
                 postFile(reader.result, fileMetadata, file.name, origin);
             };
             reader.onerror = function (error) {
-                postToLWC({error: "Failed to create binary file: " + error}, origin);
+                postToLWC({ error: "Failed to create binary file: " + error }, origin);
             };
         }
 
@@ -18,7 +18,7 @@
             const formData = new FormData();
             const mdPart = new File([JSON.stringify(fileMetadata)], "", { type: "application/json" });
             formData.append('entity_content', mdPart);
-            const filePart = new Blob([fileData], { type: "application/octet-stream"});
+            const filePart = new Blob([fileData], { type: "application/octet-stream" });
             formData.append('VersionData', filePart);
             const request = {
                 method: 'POST',
@@ -29,14 +29,14 @@
                 body: formData
             };
             fetch("/services/data/v53.0/sobjects/ContentVersion", request)
-                .then(function(response) {
+                .then(function (response) {
                     if (response.status != 201) {
                         throw new Error("CANT_UPLOAD_VERSION");
                     }
                     return response.json();
                 })
                 .then(result => {
-                    postToLWC({success: true, id: result.id, filename: filename}, origin);
+                    postToLWC({ success: true, id: result.id, filename: filename }, origin);
                 })
                 .catch(error => {
                     console.log('Error:', error);
@@ -45,18 +45,22 @@
                         err = "{!$Label.ErrorMsgCantUploadNewVersion}";
                     else
                         err = "{!$Label.ErrorMsgCantUploadNewVersion}" + error
-                    postToLWC({error: err}, origin);
+                    postToLWC({ error: err }, origin);
                 });
         }
 
         // EventListener for handling LWC messages
-        window.addEventListener("message", function(event) {
-            const origin  = event.origin.split('.');
-            const host = '{!URLFOR("/", null)}'.split('.'); 
-            if (origin[0] === host[0]) {
+        window.addEventListener("message", function (event) {
+            const originArr = event.origin.split('.');
+            const origin = originArr[0].replace('https://' , '');
+            //const host = '{!URLFOR("/", null)}'.split('.');
+            const host = window.location.host.split('.');
+            if (host[0].startsWith(origin)) {
                 const uploadData = event.data;
                 uploadFile(uploadData.file, uploadData.fileMetadata, event.origin);
-            }
+            } else
+                console.log('Invalid LWC origin ' + origin);
+
         });
         // Send data to LWC
         function postToLWC(message, origin) {

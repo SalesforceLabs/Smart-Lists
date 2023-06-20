@@ -4,5 +4,5 @@
     <active>true</active>
     <errorConditionFormula>ISPICKVAL( Quick_Filters_Field__c, &apos;Yes if Filterable&apos; ) &amp;&amp; ISBLANK( Display_Position_in_Quick_Filters__c )</errorConditionFormula>
     <errorDisplayField>Display_Position_in_Quick_Filters__c</errorDisplayField>
-    <errorMessage>Display Position is required for Filters panel fields</errorMessage>
+    <errorMessage>Display Position is required for Filters Panel fields</errorMessage>
 </ValidationRule>

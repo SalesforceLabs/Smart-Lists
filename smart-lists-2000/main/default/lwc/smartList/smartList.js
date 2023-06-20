@@ -10,6 +10,12 @@ export default class SmartList extends LightningElement {
     @api inTab = false;
     @api flow = false;
     @api minRowSelected;
+    @api get records() {
+        return this.smartListShared.records;
+    }
+    @api get recordsCount() {
+        return this.smartListShared.recordsCount;
+    }
     @api get selectedRecord() {
         return this.smartListShared.selectedRecord;
     }

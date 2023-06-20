@@ -337,13 +337,6 @@
         <value>Loading...</value>
     </labels>
     <labels>
-        <fullName>LookupClearSelection</fullName>
-        <language>en_US</language>
-        <protected>false</protected>
-        <shortDescription>LookupClearSelection</shortDescription>
-        <value>Clear Selection</value>
-    </labels>
-    <labels>
         <fullName>LookupNoResults</fullName>
         <language>en_US</language>
         <protected>false</protected>

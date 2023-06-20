@@ -6,7 +6,7 @@
                 <header class="slds-modal__header">
                     <button
                         class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse slds-current-color"
-                        title={labels.labelClose} onclick={closeModal}>
+                        title={labels.labelClose} onclick={closeModal} disabled={saving}>
                         <lightning-icon size="x-small" icon-name="utility:close" alternative-text={labels.labelClose}
                             title={labels.labelClose}>
                             <label>labels.labelClose</label>
@@ -24,7 +24,7 @@
                                     type="radio" onchange={handleSelectRecordType}>
                                 </lightning-radio-group>
                             </div>
-                            <div style="position: absolute; bottom: 0; left: 0; right: 0; margin-bottom: 1rem; text-align:center">
+                            <div style="position: absolute; bottom: 0px; left: 0px; right: 0px; margin-bottom: 1rem; text-align:center">
                                 <lightning-button label={labels.labelCancel} onclick={closeModal} class="slds-var-p-left_xx-small">
                                 </lightning-button>
                                 <lightning-button label={labels.labelNext} onclick={handleNext} variant="brand" class="slds-var-p-left_xx-small">
@@ -33,10 +33,18 @@
                         </div>
                     </template>
                     <template lwc:else>
-                        <lightning-record-form record-id={recordId} object-api-name={objectName} record-type-id={recordTypeId} columns="2" layout-type="Full" mode="edit" 
-                            onsubmit={handleSubmit} onsuccess={handleSuccess} oncancel={closeModal}>
-                        </lightning-record-form>
-                    </template>
+                        <div style="position: relative;">
+                            <template lwc:if={saving}>
+                                <div style="display: inline-block;">
+                                    <lightning-spinner alternative-text="Saving" size="medium" variant="brand"></lightning-spinner>
+                                </div>
+                            </template>
+                            <lightning-record-form record-id={recordId} object-api-name={objectName} record-type-id={recordTypeId} columns="2" layout-type="Full" mode="edit" 
+                                onsubmit={handleSubmit} onsuccess={handleSuccess} onerror={handleError} oncancel={closeModal}>
+                                <lightning-messages></lightning-messages>
+                            </lightning-record-form>
+                        </div>
+                </template>
                 </div>
             </div>
         </section>

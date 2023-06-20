@@ -20,6 +20,12 @@ export default class SmartFilesList2 extends NavigationMixin(LightningElement) {
     get hasNoRecords() {
         return this.smartListShared ? this.smartListShared.recordViewer.hasNoRecords : false;
     }
+    @api get records() {
+        return this.smartListShared.records;
+    }
+    @api get recordsCount() {
+        return this.smartListShared.recordsCount;
+    }
     get hasNoSelectedRecords() {
         return this.smartListShared.hasNoSelectedRecords;
     }

@@ -41,6 +41,8 @@
             <property name="selectedRecord" type="{T}" label="Selected Record" description="Selected record for Smart List configured for mono-selection" role="outputOnly" />
             <property name="selectedRecords" type="{T[]}" label="Selected Records" description="Selected records for Smart List configured for multi-selection" role="outputOnly" />
             <property name="selectedRecordsCount" type="Integer" label="Selected Records Count" description="Number of Selected records" role="outputOnly" />
+            <property name="records" type="{T[]}" label="Records Displayed in the List" description="Records Displayed in the List" role="outputOnly" />
+            <property name="recordsCount" type="Integer" label="Number of Records Displayed in the List" description="Number of Records Displayed in the List" role="outputOnly" />
             <property name="flow" type="String" label="INTERNAL - Must be set to {!$GlobalConstant.True}" role="inputOnly" required="true"/>
         </targetConfig>
 </targetConfigs>

@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
-    <fullName>Check_Display_Position_Quick_Filters</fullName>
-    <active>true</active>
-    <errorConditionFormula>ISPICKVAL(Quick_Filters_Field__c, &apos;Yes if Filterable&apos;) &amp;&amp; ISBLANK( Display_Position_in_Quick_Filters__c)</errorConditionFormula>
-    <errorDisplayField>Display_Position_in_Quick_Filters__c</errorDisplayField>
-    <errorMessage>Display Position in Quick Filters is required when Display in Quick Filters = &apos;Yes if Filterable&apos;</errorMessage>
-</ValidationRule>

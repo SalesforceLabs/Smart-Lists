@@ -20,6 +20,7 @@ export default class EditRecordModal extends LightningElement {
     recordTypeId = null;
     showRecordTypes = false;
     title;
+    saving = false;
 
     // LABELS
     labels = {
@@ -65,13 +66,20 @@ export default class EditRecordModal extends LightningElement {
         // Add parent id field for child lists
         if (this.parentRecordField)
             fields[this.parentRecordField] = this.parentRecordId;
+        this.saving = true;
         this.template.querySelector('lightning-record-form').submit(fields);
     }
 
     // Save action succesful
     handleSuccess(event) {
+        this.saving = false;
         const actionLabel = this.recordId ? this.labels.labelWasSaved : this.labels.labelWasCreated;
         this.notifyParent("success", this.recordId ? "update" : "create", this.objectLabel + ' ' + actionLabel, event.detail.id);
+    }
+
+    handleError(event)  {
+        this.saving = false;
+        //console.log('EditError ' + JSON.stringify(event.detail));
     }
 
     // Close/Cancel modal

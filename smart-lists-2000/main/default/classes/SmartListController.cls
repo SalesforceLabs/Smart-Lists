@@ -997,7 +997,7 @@ global with sharing class SmartListController {
                     slf.Hyperlink_to_Detail_Id_Field__c = 'Id';
                 // Set HyperlinkId Field for FILE_PREVIEW if needed
                 else if (slf != null && slf.Display_Type__c == TYPE_FILE_PREVIEW)
-                    slf.Hyperlink_to_Detail_Id_Field__c = 'Id';
+                    slf.Hyperlink_to_Detail_Id_Field__c = 'ContentDocumentId';
             }
         }
         // Check lookup 
