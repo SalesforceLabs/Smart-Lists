@@ -1,7 +1,7 @@
 <template>
     <template lwc:if={initializedContext}>
-        <div class="slds-panel slds-size_medium slds-panel_docked slds-panel_docked-right slds-grid slds-grid_vertical">
-            <div class="slds-panel__header">
+        <div class={panelClass}>
+            <div class="slds-panel__header sl-filters-panel-background">
                 <h2 class="slds-panel__header-title slds-text-heading_small slds-truncate">
                     {labels.labelQuickFilters}
                 </h2>
@@ -16,7 +16,7 @@
                 </template>
             </div>
             <form onsubmit={handleApply}>
-                <div class="slds-panel__body slds-grid slds-grow">
+                <div class="slds-panel__body slds-grid slds-grow sl-filters-panel-background sl-filters-panel-body" style={filtersStyle}>
                     <div class="slds-filters slds-col filterBody">
                         <template for:each={filterModel} for:item="item">
                             <div key={item.fieldName} class="slds-var-p-bottom_medium slds-is-relative">
@@ -27,7 +27,7 @@
                                                 label={item.fieldLabel} autocomplete="off" onchange={handleInputChange}
                                                 onblur={handleSOSLSearchBlur}>
                                             </lightning-input>
-                                            <lightning-helptext content={nonSearchableFields} class="sl-helptext"></lightning-helptext>
+                                            <lightning-helptext lwc:if={hasNonSearchableFields} content={nonSearchableFields} class="sl-helptext"></lightning-helptext>
                                         <lightning-button-icon icon-name="utility:clear" variant="bare"
                                             data-clear={item.fieldName} alternative-text={labels.labelClear}
                                             class="slds-col slds-no-flex slds-var-m-left_xx-small sl-clear-input"
@@ -130,7 +130,7 @@
                                 </template>
                                 <template lwc:elseif={item.isLookup}>
                                     <div class="slds-grid">
-                                        <c-lookup name={item.fieldName} data-name={item.fieldName}
+                                        <c-lookup name={item.fieldName} data-name={item.fieldName} parent={panelBody}
                                             objects={item.lookupData} onselectionchange={handleLookupChange}
                                             label={item.fieldLabel} class="slds-col slds-no-space">
                                         </c-lookup>
@@ -145,26 +145,18 @@
                         </template>
                     </div>
                 </div>
-                <template lwc:if={canShowFooter}>
-                    <div class="slds-grid slds-no-flex panel-footer slds-border_top sl-footer">
-                        <div class="slds-grid slds-wrap">
-                            <template if:true={canCancel}>
-                                <lightning-button class="slds-var-m-right_x-small" label={labels.labelCancel}
-                                    onmousedown={handleCancel}></lightning-button>
-                            </template>
-                            <template if:true={canClearAll}>
-                                <lightning-button variant="base" label={labels.labelClearAllFilters}
-                                    onmousedown={handleClearFilters}></lightning-button>
-                            </template>
-                        </div>
-                        <template lwc:if={canApply}>
-                            <span class="slds-grid slds-col slds-grid_align-end">
-                                <lightning-button variant="Brand" label={labels.labelApply} type="submit"
-                                    disabled={applyDisabled}></lightning-button>
-                            </span>
-                        </template>
+                <div class="slds-grid slds-no-flex panel-footer slds-border_top sl-footer">
+                    <div class="slds-grid slds-wrap">
+                        <lightning-button class="slds-var-m-right_x-small" label={labels.labelCancel}
+                        onmousedown={handleCancel} disabled={cancelDisabled}></lightning-button>
+                        <lightning-button variant="base" label={labels.labelClearAllFilters}
+                        onmousedown={handleClearFilters} disabled={clearAllDisabled}></lightning-button>
                     </div>
-                </template>
+                    <span class="slds-grid slds-col slds-grid_align-end">
+                        <lightning-button variant="Brand" label={labels.labelApply} type="submit"
+                            disabled={applyDisabled}></lightning-button>
+                    </span>
+                </div>
             </form>
         </div>
     </template>

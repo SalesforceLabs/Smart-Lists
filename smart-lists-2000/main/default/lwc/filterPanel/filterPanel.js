@@ -29,8 +29,13 @@ export default class FilterPanel extends LightningElement {
     @api initializedContext;
     // Panel can be closed (not displayed all the time)
     @api canClose;
+    // Max Height in pixels of the filters display window
+    @api filtersMaxHeight;
     // Name of the SOSL Search field in values
     @api SOSL_SEARCH_FIELD_NAME = "SOSLSearch";
+    // Display on the right
+    @api displayRight;
+
     MIN_RANGE_SUFFIX = '.min';
     MAX_RANGE_SUFFIX = '.max';
     showPicklistModal = false;
@@ -89,23 +94,42 @@ export default class FilterPanel extends LightningElement {
         { label: this.labels.labelUnchecked, value: this.BOOLEAN_UNCHECKED },
     ];
     @api nonSearchableFields;
-    @api hasSearchableFieds = false;
+    @api get hasNonSearchableFields() {
+        return this.nonSearchableFields.length > 0;
+    }
+    @api hasSearchableFields = false;
+
+    // STYLING
+    get panelClass() {
+        const cls = "slds-panel slds-panel_docked slds-grid slds-grid_vertical sl-filters-panel ";
+        return cls + (this.displayRight ? "slds-panel_docked-right" :  "slds-panel_docked-left sl-filters-panel-left");
+    }
+    get filtersStyle() {
+        return this.filtersMaxHeight ? "overflow-y: auto;max-height: " + this.filtersMaxHeight + "px;" : "";
+    } 
 
     // UI CONTROL
-    // If true, panel footer with buttons is displayed
-    canShowFooter = false;
-    // If true, Cancel button is displayed
-    canCancel = false;
-    // If true, Clear All button is displayed
-    canClearAll = false;
-    // If true, Apply button is displayed
-    canApply = false;
+    // If true, Cancel button is disabled
+    cancelDisabled = true;
+    // If true, Clear All button is disableed
+    clearAllDisabled = true;
     // If true, Apply button is disabled
-    applyDisabled = false;
+    applyDisabled = true;
     // display/hide picklistValueModal
     showPicklistModal = false;
     // Data for pick list modal
     picklistSelection;
+
+    setPanel = true;
+    @api panelBody;
+    renderedCallback() {
+        if (this.setPanel) {
+            this.panelBody = this.template.querySelector('.slds-panel__body');
+            if (this.panelBody) {
+                this.setPanel = false;
+            }
+        }
+    }
 
     // Compare filterable fields for sorting by Display Order in Quick Filters
     compareFilterableFields(f1, f2) {
@@ -124,18 +148,17 @@ export default class FilterPanel extends LightningElement {
     @api buildFilterModel(fields, showSOSLSearchInQuickFilters, dataSourceType) {
         const filterModel = [];
         let nonSearchableFields = [];
+        let hasSearchableFields = false;
         const labels = this.labels;
         let fpFields = [];
         for (const fieldName of Object.getOwnPropertyNames(fields)) {
             const field = fields[fieldName];
             if (field.filterable) fpFields.push(field);
             if (field.listField) {
-                if (field.type !== 'EMAIL' && field.type !== 'PHONE' && field.type !== 'STRING' && field.type !== 'TEXTAREA' && field.type !== 'URL')
-                    nonSearchableFields.push(field.label);
-                else if (field.quickFiltersName === 'Owner' || field.quickFiltersName === 'RecordType')
+                if (field.nonSearchable)
                     nonSearchableFields.push(field.label);
                 else
-                    this.hasSearchableFieds = true;
+                    hasSearchableFields = true;
             }
         }
         nonSearchableFields = nonSearchableFields.sort((a, b) => a.localeCompare(b));
@@ -219,7 +242,7 @@ export default class FilterPanel extends LightningElement {
             }
             filterModel.push(entry);
         });
-        if (showSOSLSearchInQuickFilters && this.hasSearchableFieds) {
+        if (showSOSLSearchInQuickFilters && hasSearchableFields) {
             const label =
                 dataSourceType === "Files"
                     ? labels.labelFilterSOSLSearchFileContent
@@ -233,6 +256,7 @@ export default class FilterPanel extends LightningElement {
             });
         }
         this.filterModel = filterModel;
+        this.hasSearchableFields = hasSearchableFields;
         this.nonSearchableFields = nonSearchableFields.length > 0 ? labelNonSearchableFields.replace('{0}', Array.from(nonSearchableFields).join(", ")) : "";
         // Create initial values
         const values = new Map();
@@ -490,8 +514,7 @@ export default class FilterPanel extends LightningElement {
         const entry = this.values.get(filter);
         // No cancel value found: create a new one if new value is not initial value
         if (!this.cancelValues.has(filter)) {
-            if (!this.equalForType(entry.fieldType, value, entry.initValue))
-                this.cancelValues.set(filter, entry.value);
+            this.cancelValues.set(filter, entry.value);
         }
         // Cancel value found & cancel value = new value -> remove cancel value from cancelValues
         else {
@@ -516,11 +539,9 @@ export default class FilterPanel extends LightningElement {
 
     // Set buttons based on UI context
     updateUI() {
-        this.canClearAll = this.filtersWithValue.size > 0;
-        this.canCancel = this.cancelValues.size > 0;
-        this.canApply = this.canCancel || this.canClearAll;
-        this.applyDisabled = !this.canCancel || this.filtersWithError.size > 0;
-        this.canShowFooter = this.canCancel || this.canClearAll || this.canApply;
+        this.clearAllDisabled = this.filtersWithValue.size === 0;
+        this.cancelDisabled = this.cancelValues.size === 0;
+        this.applyDisabled = this.cancelDisabled || this.filtersWithError.size > 0;
     }
 
     // Clear filter button has been clicked on a field

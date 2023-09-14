@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Disable_Autoload__c</fullName>
+    <defaultValue>false</defaultValue>
+    <externalId>false</externalId>
+    <fieldManageability>DeveloperControlled</fieldManageability>
+    <inlineHelpText>If checked, no records are automatically loaded when the list is displayed for the first time
+If unchecked, records are automatically loaded when the list is displayed for the first time</inlineHelpText>
+    <label>Disable Autoload on Initialization</label>
+    <type>Checkbox</type>
+</CustomField>

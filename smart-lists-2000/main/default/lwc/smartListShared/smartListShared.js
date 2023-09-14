@@ -169,9 +169,12 @@ export default class SmartListShared extends LightningElement {
     quickFiltersTitle = this.labels.labelShowQuickFilters;
     // If false, Quick Filters panel can't be closed: displayed all the time
     canCloseQuickFilters = false;
-    get filterPanelClass() {
-        return (this.showQuickFilters) ? 'slds-col slds-no-flex' : 'slds-col slds-no-flex slds-hide';
-    }
+    // Max Height of the filters display window
+    filtersMaxHeight;
+    // Filters Panel displayed on the left
+    leftFilters = true;
+    // Filters Panel displayed on the right
+    rightFilters = true;
 
     // SORT DATA
     get sortDirectionIcon() {
@@ -204,6 +207,11 @@ export default class SmartListShared extends LightningElement {
     get initializationContext() {
         return !this.initializedContext;
     }
+
+    // STYLING
+    get viewerContainerClass() {
+        return this.showQuickFilters && !this.displayQuickFiltersAllTheTime ? "slds-col slds-no-space sl-viewer-container-with-filters" : "slds-col slds-no-space";
+    }
     get articleClass() {
         let cls = "slds-card slds-card_boundary sl-component-container";
         return this.flow ? cls += " sl-flow-context" : this.community ? cls += " sl-community-context" : cls += " sl-app-context";
@@ -211,6 +219,9 @@ export default class SmartListShared extends LightningElement {
     get pageHeaderClass() {
         let cls = "slds-page-header";
         return this.flow ? cls += " sl-flow-context" : this.community ? cls += " sl-community-context" : cls;
+    }
+    get filtersPanelDivClass() {
+        return (this.showQuickFilters) ? 'slds-col slds-no-flex' : 'slds-col slds-no-flex slds-hide';
     }
 
     // GET UI COMPONENTS
@@ -229,14 +240,16 @@ export default class SmartListShared extends LightningElement {
     _recordViewer;
     @api get recordViewer() {
         if (!this._recordViewer)
-            this._recordViewer = this.template.querySelector( 'c-record-viewer');
+            this._recordViewer = this.template.querySelector('c-record-viewer');
         return this._recordViewer;
     }
-    _filterPanel;
-    get filterPanel() {
-        if (!this._filterPanel)
-            this._filterPanel = this.template.querySelector('c-filter-panel');
-        return this._filterPanel;
+    _filtersPanel;
+    get filtersPanel() {
+        if (!this._filtersPanel) {
+            const comps = this.template.querySelectorAll('c-filter-panel');
+            this._filtersPanel = this.rightFilters ? comps[1] : comps[0];
+        }
+        return this._filtersPanel;
     }
     _soslSearchTooltip
     get soslSearchTooltip() {
@@ -323,9 +336,13 @@ export default class SmartListShared extends LightningElement {
                 this.maxRowSelected = listDef.maxRowSelected;
                 // Add smartListShared properties to listDef which are needed by initialization process
                 listDef.flow = this.flow;
+                this.displayQuickFiltersAllTheTime = listDef.displayQuickFiltersAllTheTime;
+                this.rightFilters = listDef.filtersPosition === 'right';
+                this.leftFilters = !this.rightFilters;
+                this.filtersMaxHeight = listDef.filtersMaxHeight;
                 // Build Quick Filters model and initialize Quick Filters values
-                this.filterPanel.buildFilterModel(listDef.fields, listDef.showSOSLSearchInQuickFilters, listDef.dataSourceType);
-                if (this.filterPanel.hasFilters) {
+                this.filtersPanel.buildFilterModel(listDef.fields, listDef.showSOSLSearchInQuickFilters, listDef.dataSourceType);
+                if (this.filtersPanel.hasFilters) {
                     // Display Quick Filters button when Quick Filters are not displayed all the time
                     this.canCloseQuickFilters = !listDef.displayQuickFiltersAllTheTime;
                     // Display Quick Filters if must be displayed all the time
@@ -333,7 +350,7 @@ export default class SmartListShared extends LightningElement {
                 }
                 else
                     this.canCloseQuickFilters = false;
-                this.showSOSLSearch = (listDef.showSOSLSearchInComponent && this.filterPanel.hasSearchableFieds);
+                this.showSOSLSearch = (listDef.showSOSLSearchInComponent && this.filtersPanel.hasSearchableFields);
                 // Request initialization data from parent 
                 this.dispatchEvent(
                     new CustomEvent("initialize", { detail: listDef }));
@@ -351,7 +368,8 @@ export default class SmartListShared extends LightningElement {
     @api parentInitialized(listDef) {
         this.recordViewer.initialize(listDef);
         // Load first page of records with sort order
-        this.loadFirstPage();
+        if (!listDef.noAutoload)
+            this.loadFirstPage();
         this.showSpinner = false;
         this.showSort = this.displayMode == 'Tiles' && this.recordViewer.sortFields.length > 0;
         this.initializedContext = true;
@@ -385,6 +403,8 @@ export default class SmartListShared extends LightningElement {
             if (this.viewerMaxWidth !== componentContainer.offsetWidth - this.borders) {
                 this.viewerMaxWidth = componentContainer.offsetWidth - this.borders;
                 this.viewerPanel.style.width = this.viewerMaxWidth + "px";
+                if (this.displayQuickFiltersAllTheTime !== undefined && !this.displayQuickFiltersAllTheTime)
+                    this.recordViewer.width = this.viewerMaxWidth;
             }
         }
     }
@@ -411,7 +431,7 @@ export default class SmartListShared extends LightningElement {
         this.isLoading = true;
         this.showSpinner = true;
         const offset = replaceRecords ? 0 : this.recordViewer.recordsCount;
-        const pageSize = this.recordViewer.pageSize;
+        const pageSize = this.recordViewer.noPaging ? this.recordViewer.maxRecords : this.recordViewer.pageSize;
         const maxRecords = this.recordViewer.maxRecords;
         const truncatePage = !loadAll && (offset + pageSize > maxRecords); 
         const pageRecs = (loadAll || truncatePage) ? maxRecords - offset : pageSize;
@@ -437,7 +457,6 @@ export default class SmartListShared extends LightningElement {
                 const loadedRecords = pageRecords.length;
                 const allRecordsLoaded = (!loadAll && loadedRecords < pageRecs) || (loadAll && (offset + loadedRecords < maxRecords));
                 this.maxRecordsLoaded = !allRecordsLoaded && ((!loadAll && truncatePage) || (loadAll && (offset + loadedRecords == maxRecords)));
-                const spr = Date.now();
                 this.recordViewer.setRecordsPage(pageRecords, replaceRecords, this.maxRecordsLoaded, allRecordsLoaded);
                 this.isLoading = false;
                 this.showSpinner = false;
@@ -487,7 +506,6 @@ export default class SmartListShared extends LightningElement {
         this.quickFiltersTitle = this.showQuickFilters
             ? this.labels.labelHideQuickFilters
             : this.labels.labelShowQuickFilters;
-        this.setListWidth();
     }
 
     // Apply filter defined in quick filters panel
@@ -512,12 +530,12 @@ export default class SmartListShared extends LightningElement {
 
     // The SOSL search input got the focus: display the searchable fields if needed
     handleSOSLSearchFocus() {
-        if (this.filterPanel.nonSearchableFields)
+        if (this.filtersPanel.nonSearchableFields)
             this.updateSOSLSearchTooltip(true);
     }
     // The SOSL search input lost the focus: check value validity
     handleSOSLSearchBlur() {
-        if (this.filterPanel.nonSearchableFields)
+        if (this.filtersPanel.nonSearchableFields)
             this.updateSOSLSearchTooltip(false);
     }
 
@@ -530,7 +548,7 @@ export default class SmartListShared extends LightningElement {
     applyFilter() {
         const filterEntries = this.filterEntriesPanel && this.filterEntriesPanel.length > 0 ? this.filterEntriesPanel : [];
         if (this.showSOSLSearch && this.soslSearch)
-            filterEntries.push({"fieldName":this.filterPanel.SOSL_SEARCH_FIELD_NAME,"values":[this.soslSearch],"type":"Text"})
+            filterEntries.push({"fieldName":this.filtersPanel.SOSL_SEARCH_FIELD_NAME,"values":[this.soslSearch],"type":"Text"})
         this.filterEntries = [...filterEntries];
         this.loadFirstPage();
     }
@@ -541,33 +559,35 @@ export default class SmartListShared extends LightningElement {
         if (key.startsWith('std_'))
             this.dispatchEvent(new CustomEvent('rowaction', event));
         else if (key.startsWith('cust_')) {
-            let rows = [];
-            rows.push(event.detail.row);
-            this.executeFlowAction(key, rows);
+            const action = this.custActionsDict[key];
+            if (action) {
+                let rows = [];
+                rows.push(event.detail.row);
+                this.executeFlowAction(action, rows);
+            }
         }
     }
 
     // A list action has been selected
     handleListAction(event) {
-        this.executeFlowAction(event.target.name, this.selectedRecords);
+        const action = this.custActionsDict[event.target.name];
+        if (action)
+            this.executeFlowAction(action, action.availabilitySelected ? this.selectedRecords : this.records);
     }
 
     // Execute flow list/row action
-    executeFlowAction(key, rows) {
-        const action = this.custActionsDict[key];
-        if (action) {
-            this.currentFlowAction = action;
-            this.flowRows = rows;
-            if (action.category === 'Screen Flow') {
-                this.showScreenFlowModal = true;
-            } else {
-                this.showSpinner = true;
-                runFlow({ flowName: action.flowName, records: rows }).then(result => {
-                    this.endFlow(result);
-                }).catch((error) => {
-                    this.displayError(error);
-                });
-            }
+    executeFlowAction(action, rows) {
+        this.currentFlowAction = action;
+        this.flowRows = rows;
+        if (action.category === 'Screen Flow') {
+            this.showScreenFlowModal = true;
+        } else {
+            this.showSpinner = true;
+            runFlow({ flowName: action.flowName, records: rows, parentId: this.recordId }).then(result => {
+                this.endFlow(result);
+            }).catch((error) => {
+                this.displayError(error);
+            });
         }
     }
 

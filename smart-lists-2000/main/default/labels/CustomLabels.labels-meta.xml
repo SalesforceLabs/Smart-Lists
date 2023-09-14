@@ -456,6 +456,13 @@
         <value>My</value>
     </labels>
     <labels>
+        <fullName>SOQLScopeMyQueues</fullName>
+        <language>en_US</language>
+        <protected>false</protected>
+        <shortDescription>Ownership Visibility Filter My Queues</shortDescription>
+        <value>My Queues</value>
+    </labels>
+    <labels>
         <fullName>SOQLScopeMySubordinates</fullName>
         <language>en_US</language>
         <protected>false</protected>

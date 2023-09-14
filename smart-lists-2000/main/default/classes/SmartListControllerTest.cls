@@ -282,7 +282,7 @@ public class SmartListControllerTest {
             Map<String, Object> fields = (Map<String, Object>)parms.get('fields');
             System.assertEquals(6, fields.size());
             List<Object> soqlScopes = (List<Object>)parms.get('soqlScopes');
-            System.assertEquals(4, soqlScopes.size());
+            System.assertEquals(5, soqlScopes.size());
             List<Object> filters = (List<Object>)parms.get('filters');
             System.assertEquals(2, filters.size());
             List<Object> standardListActions = (List<Object>)parms.get('standardListActions');
@@ -291,6 +291,12 @@ public class SmartListControllerTest {
             System.assertEquals(0, customListActions.size()); // 0 -> no custom permission
             List<Object> rowActions = (List<Object>)parms.get('rowActions');
             System.assertEquals(2, rowActions.size()); // Edit, custom - Delete not in profile
+        }
+        // Test will Filters Layout Hyperlink to Detail Id Field not populated 
+        SmartListController.listDefinition[0].Filters_Panel_Layout__c = null;
+        SmartListController.listFields[0].Hyperlink_to_Detail_Id_Field__c = null;
+        System.runAs(u) {
+            String parmsStr = SmartListController.getListParameters('List', null, false);
         }
     }
     
@@ -675,11 +681,33 @@ public class SmartListControllerTest {
         }
         Test.stopTest();
     }
-
+    
+    @isTest
+    static void testGetPageSoqlQueues() {
+        List<Group> queues = SmartListTestDataFactory.createCaseQueues();
+        Account acc = SmartListTestDataFactory.createAccount('account');
+        Case c1 = SmartListTestDataFactory.createCase('case0', queues.get(0).Id);
+        Case c2 = SmartListTestDataFactory.createCase('case1', queues.get(1).Id);
+        Case c3 = SmartListTestDataFactory.createCase('case2', queues.get(2).Id);
+        List<Case> cs;
+        // Test no parent
+        cs = (List<Case>)SmartListController.getPage(SmartListController.DATASOURCE_SOQL_WITH_SHARING, null, 'Case', null, SmartListController.SCOPE_MY_QUEUES, 'Subject',
+                null, null, null, 'Subject', 'asc', 0, 10);
+		System.assertEquals(2, cs.size()); // 2 cases assigned to running user
+        // Test with parent
+        c1.AccountId = acc.Id;
+        update c1;
+        cs = (List<Case>)SmartListController.getPage(SmartListController.DATASOURCE_SOQL_WITH_SHARING, null, 'Case', null, SmartListController.SCOPE_MY_QUEUES, 'Subject',
+                null, 'AccountId', acc.Id, 'Subject', 'asc', 0, 10);
+        // Test no queues
+        SmartListController.getPage(SmartListController.DATASOURCE_SOQL_WITH_SHARING, null, 'Account', null, SmartListController.SCOPE_MY_QUEUES, 'Name',
+                null, null, null, 'Name', 'asc', 0, 10);
+    }
+    
     @isTest
     static void testGetPageApex() {
         SmartListController.getPage(SmartListController.DATASOURCE_APEX, 'SmartListTestApexDataSource', 'Account', null, SmartListController.SCOPE_MY, 
-                                    'Name', null, null, null, 'Name', 'asc', 0, 10);
+                                    'Name', null, 'null', null, 'Name', 'asc', 0, 10);
     }
     @isTest
     static void testGetRecord() {
@@ -723,7 +751,7 @@ public class SmartListControllerTest {
     static void testRunFlow() {
         Boolean error = false;
         try {
-            SmartListController.runFlow('Invalid', null);
+            SmartListController.runFlow('Invalid', null, null);
         } catch (Exception ex) {
             error = true;
         }

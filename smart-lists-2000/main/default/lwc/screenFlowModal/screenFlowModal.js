@@ -5,8 +5,10 @@ import labelClose from '@salesforce/label/c.Close';
 export default class ScreenFlowModal extends LightningElement {
     // API name of the screeen of the screenflow
     @api flowName;
-    // Rows selected in the smart list
+    // Rows passed to the action
     @api rows = [];
+    // Parent Id of the child list; empty for lists without parents
+    @api parentId;
     // Optional height of the flow content div
     @api modalHeight;
     // Input variables for the flow
@@ -20,7 +22,7 @@ export default class ScreenFlowModal extends LightningElement {
 
     // Initialize records input variable with selected rows
     connectedCallback() {
-        let inputVariables = [{ name : "records", type : "SObject", value: this.rows }];
+        let inputVariables = [{ name : "records", type : "SObject", value: this.rows }, { name: "parentId", type: "String", value: this.parentId ?? '' }];
         this.inputVariables = inputVariables;
     }
 

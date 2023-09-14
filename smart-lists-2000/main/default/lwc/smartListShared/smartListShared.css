@@ -1,3 +1,7 @@
+.sl-viewer-container-with-filters {
+    max-width: calc(100% - 21rem);
+    overflow-x: auto;
+}
 .sl-app-context {
     background-color: var(--lwc-colorBackground);
 }

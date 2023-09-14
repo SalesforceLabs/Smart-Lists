@@ -58,6 +58,10 @@
                 <behavior>Edit</behavior>
                 <field>Hyperlink_to_Detail_Id_Field__c</field>
             </layoutItems>
+            <layoutItems>
+                <behavior>Edit</behavior>
+                <field>URL_Value__c</field>
+            </layoutItems>
         </layoutColumns>
         <style>TwoColumnsLeftToRight</style>
     </layoutSections>

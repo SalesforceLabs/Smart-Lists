@@ -12,9 +12,11 @@ global with sharing class SmartListController {
     public static String SCOPE_MY = 'mine';
     public static String SCOPE_MY_TEAM = 'team';
     public static String SCOPE_MY_SUBORDINATES = 'subordinates';
+    public static String SCOPE_MY_QUEUES = 'queues';
     // Constants for Display Type
     public static String TYPE_HYPERLINK_DETAIL = 'HYPERLINK_DETAIL';
     public static String TYPE_FILE_PREVIEW = 'FILE_PREVIEW';
+    public static String TYPE_URL_LABEL = 'URL_LABEL';
 
     /*
         Translate a custom label by reading the value retrieved in VF Page SmartListLabel
@@ -24,21 +26,11 @@ global with sharing class SmartListController {
         String result = label;
         if (label != null && label.startsWith('$Label.')) {
             String[] parts = label.split('\\.');
-            PageReference ref = Page.SmartListLabel;
-            ref.getParameters().putAll(
-              new Map<String, String> {
-                'lang' => UserInfo.getLanguage(),
-                'label' => parts[1]
-            });
-            Map<String, Object> labelValue;
-            if (Test.isRunningTest()) {
-                labelValue = new Map<String, Object>();
-                labelValue.put('value', 'Label');
+            try {
+                result = System.Label.get('', parts[1]);
+            } catch (Exception e) {
+                result = 'Invalid Label: ' + parts[1];
             }
-            else {
-                labelValue = (Map<String, Object>)JSON.deserializeUntyped(ref.getContent().toString());
-            }
-            result = (String)labelValue.get('value');
         }
         return result;
     }
@@ -150,6 +142,7 @@ global with sharing class SmartListController {
         - displayType: data type of the field or specifying field rendering option : Hyperkink to Detail, File Preview
         - type: physical data type of the field in the list. SFDC data type or HTML for rendering HTML formatted fields
         - hyperlinkIdField: For Hyperlink to Detail, field of the target object containing the Id of the target record
+        - urlLabel: For URL with Label, field used as the label of the URL
         - editable: if true, running user can edit the field
         - sortable: if true, the field is sortable in the list
         - filterable: if true, the field is searchable in the Quick Filter
@@ -177,9 +170,11 @@ global with sharing class SmartListController {
         public String type;
         public String fractionDigits;
         public String hyperlinkIdField;
+        public String urlValue;
         public Boolean editable;
         public Boolean sortable;
         public Boolean filterable;
+        public Boolean nonSearchable;
         public Boolean listField;
         public Integer displayPositionInList;
         public Integer displayPositionInQuickFilters;
@@ -202,6 +197,9 @@ global with sharing class SmartListController {
             // - if populated: translated value of the custom label
             // - if not populated: translated value of the field in the system
             label = slf.Field_Label__c != null ? getLabel(slf.Field_Label__c) : gdr.dfr.getLabel();
+            nonSearchable = !((gdr.dfr.getType() == Schema.DisplayType.EMAIL || gdr.dfr.getType() == Schema.DisplayType.PHONE || 
+                gdr.dfr.getType() == Schema.DisplayType.STRING || gdr.dfr.getType() == Schema.DisplayType.TEXTAREA || gdr.dfr.getType() == Schema.DisplayType.URL) && 
+                !gdr.dfr.isCalculated() && !slf.Field_Name__c.contains('.'));
             // RecordType Field: Quick Filters picklist values = Active and not master Record Types
             if (slf.Field_Name__c == RECORDTYPE_FIELD) {
                 for (Schema.RecordTypeInfo rti : rtis) {
@@ -211,6 +209,7 @@ global with sharing class SmartListController {
                 name = 'RecordType.Name';
                 quickFiltersName = 'RecordTypeId';
                 type = Schema.DisplayType.PICKLIST.name();
+                nonSearchable = true;
             } 
             // Owner field: lookup with user + optional lookup with queues if object supports queues
             else if (slf.Field_Name__c == OWNER_FIELD) {
@@ -221,6 +220,7 @@ global with sharing class SmartListController {
                 name = 'Owner.Name';
                 quickFiltersName = 'OwnerId';
                 type = 'LOOKUP';
+                nonSearchable = true;
             } 
             // Object icon for Lookup field: retrieve icon for standard/custom objects
             else if (slf.Lookup_in_Quick_Filters__c) {
@@ -237,8 +237,10 @@ global with sharing class SmartListController {
                 type = gdr.dfr.isHtmlFormatted() ? 'HTML' : gdr.dfr.getType().name();
             }
             fractionDigits = String.valueOf(gdr.dfr.getScale());
-            displayType = slf.Display_Type__c == TYPE_HYPERLINK_DETAIL || slf.Display_Type__c == TYPE_FILE_PREVIEW ? slf.Display_Type__c : type;
+            displayType = slf.Display_Type__c == TYPE_HYPERLINK_DETAIL || slf.Display_Type__c == TYPE_FILE_PREVIEW || slf.Display_Type__c == TYPE_URL_LABEL ?
+                slf.Display_Type__c : type;
             hyperlinkIdField = slf.Hyperlink_to_Detail_Id_Field__c;
+            urlValue = slf.URL_Value__c;
             editable = gdr.dfr.isUpdateable();
             sortable = (slf.Sortable_in_List__c == null || slf.Sortable_in_List__c == 'Yes if Sortable') && gdr.dfr.isSortable();
             if (isExternalObject && name.contains('.'))
@@ -270,10 +272,11 @@ global with sharing class SmartListController {
             label = getLabel(slf.Field_Label__c);
             name = slf.Field_Name__c;
             quickFiltersName = slf.Field_Name__c;
-            type = slf.Display_Type__c == TYPE_HYPERLINK_DETAIL ? 'STRING' : slf.Display_Type__c;
+            type = (slf.Display_Type__c == TYPE_HYPERLINK_DETAIL  || slf.Display_Type__c == TYPE_URL_LABEL) ? 'STRING' : slf.Display_Type__c;
             fractionDigits = slf.Display_Type__c == 'INTEGER'? '0' : '2';
             displayType = slf.Display_Type__c;
             hyperlinkIdField = slf.Hyperlink_to_Detail_Id_Field__c;
+            urlValue = slf.URL_Value__c;
             // Quick_Filters_Field__c, Display_Position_in_Quick_Filters__c, Sortable_in_List__c
             sortable = (slf.Sortable_in_List__c == null && slf.Sortable__c) || slf.Sortable_in_List__c == 'Yes if Sortable';
             filterable = (slf.Quick_Filters_Field__c == null && slf.Filterable__c) || slf.Quick_Filters_Field__c == 'Yes if Filterable';
@@ -355,6 +358,9 @@ global with sharing class SmartListController {
         public Integer modalHeight;
         public Boolean refreshList;
         public Boolean refreshRow;
+        public Boolean availabilitySelected;
+        public Boolean availabilityLoaded;
+        public Boolean availabilityAlways;
 
         public ListAction(Smart_List_Action__mdt sla) {
             this.key = 'cust_' + sla.DeveloperName;
@@ -364,6 +370,9 @@ global with sharing class SmartListController {
             this.modalHeight = (Integer)sla.Screenflow_Modal_Height__c;
             this.refreshList = sla.Refresh_After_Execution__c == 'List';
             this.refreshRow = sla.Refresh_After_Execution__c == 'Row';
+            this.availabilitySelected = sla.List_Action_Availibility__c == null || sla.List_Action_Availibility__c == 'Selected';
+            this.availabilityLoaded = sla.List_Action_Availibility__c == 'Loaded';
+            this.availabilityAlways = sla.List_Action_Availibility__c == 'Always';
         }
         public ListAction(String key, String label) {
             this.key = 'std_' + key;
@@ -379,6 +388,8 @@ global with sharing class SmartListController {
         - listLabel: label of the list
         - maxRecords: maximum number of records displayed in the list
         - pageSize: number of records retrieved by a call to paging for infinite scrolling
+        - no autoload: don't load data when the list is displayed for the first time
+        - no paging: retrieve all the data without paging
         - parentIdField: For child lists (Cases of an Account), API name of the field containing the Id of the parent record (Case.Account)
         - objectName: API name of the object for SOQL lists
         - objectLabel: translated label of the object for SOQL lists
@@ -390,6 +401,8 @@ global with sharing class SmartListController {
         - displayQuickFiltersAllTheTime: if true, Quick Filters are displayed all the time and can't be closed
         - showSOSLSearchInQuickFilters: if true, the SOSL search input is displayed in the Quick Filters
         - showSOSLSearchInComponent: if true, the SOSL search input is displayed in the component
+        - filtersMaxHeight: max height in pixels of the filters display window
+        - filtersPosition: left or right of the list
         - maxRowSelected: maximum number of rows that can be selected at a time in the time
         - showRowNumberColumn: Table Mode - If true, the row number column is displayed as the 1st column of the list
         - showRowNumberStart: Table Mode - First number of the rows counter
@@ -420,6 +433,8 @@ global with sharing class SmartListController {
         public String listLabel;
         public Integer maxRecords;
         public Integer pageSize;
+        public Boolean noAutoload;
+        public Boolean noPaging;
         public String parentIdField;
         public String objectName;
         public String objectLabel;
@@ -431,6 +446,8 @@ global with sharing class SmartListController {
         public Boolean displayQuickFiltersAllTheTime;
         public Boolean showSOSLSearchInQuickFilters;
         public Boolean showSOSLSearchInComponent;
+        public Integer filtersMaxHeight;
+        public String filtersPosition;
         public Integer maxRowSelected;
         public Boolean selectableRows;
         public Boolean showListHeader;
@@ -456,9 +473,11 @@ global with sharing class SmartListController {
 
         public ListParameters(Smart_List_Definition__mdt sld, ObjectCacheEntry baseObject, String parentId) {
             dataSourceType = sld.Data_Source_Type__c;
-            displayMode = 	sld.Display_Mode__c == null ? 'Table' : sld.Display_Mode__c;
+            displayMode = sld.Display_Mode__c == null ? 'Table' : sld.Display_Mode__c;
             maxRecords = (Integer)sld.Maximum_number_of_records__c;
             pageSize = (Integer)sld.Number_of_records_per_page__c;
+            noAutoload = sld.Disable_Autoload__c;
+            noPaging = sld.Disable_Paging__c;
             if (!String.isEmpty(sld.Parent_Id_Field__c) && baseObject != null && !baseObject.fieldExists(sld.Parent_Id_Field__c))
                 throw new SmartListException('Invalid Parent Id Field: \'' + sld.Parent_Id_Field__c + '\'');
             parentIdField = sld.Parent_Id_Field__c;
@@ -489,10 +508,19 @@ global with sharing class SmartListController {
                 soqlScopes.add(new SoqlScope(SCOPE_MY_TEAM, System.Label.SOQLScopeMyTeam));
             if (sld.SOQL_Scope_My_Subordinates__c)
                 soqlScopes.add(new SoqlScope(SCOPE_MY_SUBORDINATES, System.Label.SOQLScopeMySubordinates));
+            if (sld.SOQL_Scope_My_Queues__c)
+                soqlScopes.add(new SoqlScope(SCOPE_MY_QUEUES, System.Label.SOQLScopeMyQueues));
             defaultSortDirection = sld.Default_Sort_Direction__c;
-            displayQuickFiltersAllTheTime = sld.Display_Quick_Filters_All_the_Time__c;
+            if (sld.Filters_Panel_Layout__c == null) {
+                displayQuickFiltersAllTheTime = sld.Display_Quick_Filters_All_the_Time__c;
+                filtersPosition = 'right';
+            } else {
+                displayQuickFiltersAllTheTime = sld.Filters_Panel_Layout__c.endsWith('AT');
+                filtersPosition = sld.Filters_Panel_Layout__c.startsWith('Right') ? 'right' : 'left';
+            }
             showSOSLSearchInQuickFilters = baseObject != null && baseObject.dsor.isSearchable() && ((sld.Show_SOSL_Search__c == null && sld.Show_SOSL_Search_in_Quick_Filter__c) || (sld.Show_SOSL_Search__c == 'Filters'));
             showSOSLSearchInComponent = (baseObject != null && baseObject.dsor.isSearchable() && sld.Show_SOSL_Search__c == 'Component');
+            filtersMaxHeight = (Integer)sld.Filters_Max_Height__c;
             maxRowSelected = (Integer)sld.Max_Row_Selected__c;
             selectableRows = sld.Selectable_Rows__c;
             showListHeader = sld.Show_List_Header__c;
@@ -564,10 +592,10 @@ global with sharing class SmartListController {
     public static Smart_List_Definition__mdt[] getListDefinition(String listName) { 
         if ( listDefinition == null )
             return [SELECT Id, Data_Source_Type__c, Data_Provider_Class__c, Default_Sort_Direction__c, List_Icon__c, List_Label__c, 
-                        Display_Quick_Filters_All_the_Time__c, Show_SOSL_Search_in_Quick_Filter__c, Show_SOSL_Search__c,
-                        Selectable_Rows__c, Max_Row_Selected__c, Maximum_Number_of_Records__c, Number_of_Records_per_Page__c,  Show_List_Header__c,
+                        Display_Quick_Filters_All_the_Time__c, Show_SOSL_Search_in_Quick_Filter__c, Show_SOSL_Search__c, Filters_Max_Height__c, Filters_Panel_Layout__c,
+                        Selectable_Rows__c, Max_Row_Selected__c, Maximum_Number_of_Records__c, Number_of_Records_per_Page__c, Disable_Autoload__c, Disable_Paging__c, Show_List_Header__c,
                         SObject__c, Parent_Id_Field__c,	Enable_CRUD_Actions__c, Enable_New_Record_Action__c, Enable_Edit_Record_Action__c, Enable_Delete_Record_Action__c, 
-                        SOQL_Default_Scope__c, SOQL_Scope_All__c, SOQL_Scope_My__c, SOQL_Scope_My_Team__c, 	SOQL_Scope_My_Subordinates__c,
+                        SOQL_Default_Scope__c, SOQL_Scope_All__c, SOQL_Scope_My__c, SOQL_Scope_My_Team__c, SOQL_Scope_My_Subordinates__c, SOQL_Scope_My_Queues__c,
                         Show_Row_Number_Column__c, Row_Number_Start__c, Allowed_Extensions__c, Row_Key__c, Wrap_Text_Max_Lines__c, 
                         Parent_Key_Field__c, Display_Mode__c, Tile_Layout__c
                     FROM Smart_List_Definition__mdt WHERE DeveloperName = :listName];
@@ -583,7 +611,7 @@ global with sharing class SmartListController {
         if (listFields == null)
             return [SELECT Display_Position__c, Display_Type__c, Field_Label__c, Field_Name__c, List_Field__c, Default_Sort_Field__c, 
                         File_Edit__c, Sortable__c, Filterable__c, Column_Width__c, Wrap_Text__c, Display_as_Badge__c, Badge_Style_Field__c, Tile_Header__c,
-                        Quick_Filters_Field__c, Display_Position_in_Quick_Filters__c, Hyperlink_to_Detail_Id_Field__c,
+                        Quick_Filters_Field__c, Display_Position_in_Quick_Filters__c, Hyperlink_to_Detail_Id_Field__c, URL_Value__c,
                         Sortable_in_List__c, Lookup_in_Quick_Filters__c, Lookup_Subtitle_Field__c
                     FROM Smart_List_Field__mdt WHERE Smart_List_Definition__c = :listId ORDER BY Display_Position__c DESC];
         else
@@ -609,7 +637,7 @@ global with sharing class SmartListController {
     public static Smart_List_Action__mdt[] getListActions(Id listId) {
         if (listActions == null)
             return [SELECT 	DeveloperName, Display_Position__c, Action_Label__c, Flow_Name__c, 
-            Screenflow_Modal_Height__c, Refresh_After_Execution__c, Type__c, Category__c, Custom_Permission__c
+            Screenflow_Modal_Height__c, Refresh_After_Execution__c, Type__c, Category__c, Custom_Permission__c, List_Action_Availibility__c
                     FROM Smart_List_Action__mdt WHERE Smart_List_Definition__c = :listId ORDER BY Display_Position__c];
         else
             return listActions;
@@ -822,6 +850,8 @@ global with sharing class SmartListController {
             if (gdr != null) {
                 if (!String.isEmpty(slf.Hyperlink_to_Detail_Id_Field__c))
                     additionalFields.add(slf.Hyperlink_to_Detail_Id_Field__c);
+                if (!String.isEmpty(slf.URL_Value__c))
+                    additionalFields.add(slf.URL_Value__c);
                 FieldDefinition fd = new FieldDefinition(slf, gdr, rtis, isExternalObject);
                 if (slf.Default_Sort_Field__c) {
                     // Check if default sort field is sortable
@@ -1020,7 +1050,7 @@ global with sharing class SmartListController {
             dfr.getType() == Schema.DisplayType.BASE64 || dfr.getType() == Schema.DisplayType.COMPLEXVALUE || 
             dfr.getType() == Schema.DisplayType.DATACATEGORYGROUPREFERENCE ||
             dfr.getType() == Schema.DisplayType.SOBJECT || (dfr.getType() == Schema.DisplayType.TEXTAREA && dfr.isHtmlFormatted()))
-            throw new SmartListException('Field \'' + field + '\' has a unnsupported data type \'' + dfr.getType() + '\'');
+            throw new SmartListException('Field \'' + field + '\' has a unsupported data type \'' + dfr.getType() + '\'');
         gdr.dfr = dfr;
     }
 
@@ -1132,7 +1162,8 @@ global with sharing class SmartListController {
     public static List<Object> getInternalPage(String dataSourceType, String objectName, String listFilter, String soqlScope, String queryFields, 
     List<FilterEntry> filterEntries, String parentIdField, String parentId, String sortField, String sortDirection, Integer offset, Integer pageSize) {
         String sosl = null;
-        String whereClause = String.isEmpty(listFilter) ? '' : '(' + listFilter + ')';
+        String whereFilter = '';
+        whereFilter = addToWhereFilter(whereFilter, listFilter);
         // For Files, retrieve ContentDocumentIds related to the parent record and add ids to where clause
         if (dataSourceType == DATASOURCE_FILES) {
             String cdIds = '';
@@ -1144,15 +1175,13 @@ global with sharing class SmartListController {
             }
             if (String.isEmpty(cdIds))
                 return new List<SObject>();
-            whereClause += String.isNotEmpty(whereClause) ? ' AND ' : '';
-            whereClause += 'ContentDocumentId IN(' + cdIds + ') AND isLatest = true AND FileType != \'SNOTE\'';
+            whereFilter = addToWhereFilter(whereFilter, 'ContentDocumentId IN(' + cdIds + ') AND isLatest = true AND FileType != \'SNOTE\'');
         }
         // For SOQL, add parent id to where clause
         else if (parentIdField != null) {
             if (parentId == null)
                 return new List<SObject>();
-            whereClause += String.isNotEmpty(whereClause) ? ' AND ' : '';
-            whereClause += parentIdField + ' = \'' + parentId + '\'';
+            whereFilter = addToWhereFilter(whereFilter, parentIdField + ' = \'' + parentId + '\'');
         }
         // Quick Filters where clause
         String panelFilter = '';
@@ -1167,28 +1196,41 @@ global with sharing class SmartListController {
             }
             panelFilter = buildFilter(filterEntries);
         }
-        // Where clause
-        if (String.isNotEmpty(whereClause)) {
-            whereClause = ' WHERE ' + whereClause;
-            if (String.isNotEmpty(panelFilter))
-                whereClause +=  ' AND ' + panelFilter;
-        }
-        else if (String.isNotEmpty(panelFilter))
-            whereClause = ' WHERE ' + panelFilter;
+        whereFilter = addToWhereFilter(whereFilter, panelFilter);
         // Scope not supported with external objects
         soqlScope = objectName.endsWith('__x') ? '' : soqlScope;
+        // My Scope for SOSL
+        if (soqlScope == SCOPE_MY && sosl != null)
+            whereFilter = addToWhereFilter(whereFilter, 'OwnerId =\'' + UserInfo.getUserId() + '\'');
         // My Subordinates Scope
-        if (soqlScope == SCOPE_MY_SUBORDINATES) {
+        else if (soqlScope == SCOPE_MY_SUBORDINATES) {
             if (UserInfo.getUserRoleId() != null) {
-                String subScope = 'Owner.UserRole.ParentRoleId = \'' + UserInfo.getUserRoleId() + '\'';
-                if (String.isNotEmpty(whereClause))
-                    whereClause += ' AND (' +subScope + ')';
-                else
-                    whereClause = ' WHERE ' + subScope;
+                whereFilter = addToWhereFilter(whereFilter, 'Owner.UserRole.ParentRoleId = \'' + UserInfo.getUserRoleId() + '\'');
                 soqlScope = SCOPE_ALL;
-            } else
+            }
+            else
                 return new List<SObject>();
         }
+        // My Queues Scope
+        else if (soqlScope == SCOPE_MY_QUEUES) {
+            List<GroupMember> gms = [SELECT GroupId FROM GroupMember WHERE UserOrGroupId = :UserInfo.getUserId() 
+                                        AND GroupId IN (SELECT QueueId FROM QueueSobject WHERE SobjectType = :objectName)];
+            if (gms.size() == 0)
+                return new List<SObject>();
+            else {
+                String ids = '';
+                for (GroupMember gm : gms) {
+                    if (ids.length() > 0)
+                        ids += ', ';
+                    ids += '\'' + gm.GroupId + '\'';
+                }
+                whereFilter = addToWhereFilter(whereFilter, 'OwnerId IN (' + ids + ')');
+                soqlScope = SCOPE_ALL;
+            }
+        }
+        // Where clause
+        String whereClause = String.isEmpty(whereFilter) ? '' : ' WHERE ' + whereFilter;
+        // Scope clause
         String scopeClause = String.isEmpty(soqlScope) ? '' : ' USING SCOPE ' + soqlScope;
         // Sort clause
         String sortClause = sortField == null ? '' : ' ORDER BY ' + sortField + ' ' + sortDirection;
@@ -1203,14 +1245,26 @@ global with sharing class SmartListController {
             System.debug('Query ' + query);
             records = queryInterface.soqlQuery(query);
         } else  {
-            if (soqlScope == SCOPE_MY)
-                whereClause += ' AND (OwnerId =\'' + UserInfo.getUserId() + '\')';
             String query = 'FIND {' + sosl + '*} IN ALL FIELDS RETURNING ' + objectName  + ' (' + queryFields + 
                 whereClause + sortClause + ' LIMIT '+ pageSize + ' OFFSET ' + offset + ')'; 
             System.debug('Query ' + query);
             records = queryInterface.soslQuery(query);
         }
         return records;
+    }
+
+    /*
+        Add a filter to the where filter
+        - whereFilter: current where filter
+        - filter: filter to be added
+     */
+    global static String addToWhereFilter(String whereFilter, String filter) {
+        if (String.isNotEmpty(filter)) {
+            if (String.isNotEmpty(whereFilter))
+                whereFilter += ' AND ';
+            whereFilter += '(' + filter + ')';
+        }
+        return whereFilter;
     }
 
     /*
@@ -1295,10 +1349,11 @@ global with sharing class SmartListController {
         - records: list of records to be passed to the flow
      */
     @AuraEnabled
-    public static Map<String, String> runFlow(String flowName, SObject[] records){
+    public static Map<String, String> runFlow(String flowName, SObject[] records, String parentId){
         try {
             Map<String, Object> inputs = new Map<String, Object>();
             inputs.put('records', records);
+            inputs.put('parentId', parentId);
             Flow.Interview flow = Flow.Interview.createInterview(flowName, inputs);
             flow.start();
             Map<String,String> result = new Map<String,String>();

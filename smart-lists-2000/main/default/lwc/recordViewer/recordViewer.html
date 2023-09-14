@@ -148,6 +148,12 @@
                                                                 tooltip={field.value}
                                                                 target="_blank"></lightning-formatted-url>
                                                         </template>
+                                                        <template lwc:elseif={field.isUrlLabel}>
+                                                            <lightning-formatted-url value={field.urlValue}
+                                                                label={field.value}
+                                                                tooltip={field.value}
+                                                                target="_blank"></lightning-formatted-url>
+                                                        </template>
                                                         <template lwc:elseif={field.isHyperlink}>
                                                             <lightning-formatted-url value={field.url}
                                                                 label={field.value} tooltip={field.value}>

@@ -4,9 +4,9 @@
       "path": "smart-lists-2000",
       "default": true,
       "package": "SmartLists",
-      "versionName": "Summer 23",
-      "versionNumber": "3.1.0.0",
-      "ancestorVersion": "3.0.0.0"
+      "versionName": "Summer 23 - 3.2",
+      "versionNumber": "3.2.0.0",
+      "ancestorVersion": "3.1.0.0"
     }
   ],
   "name": "sflabs",
@@ -24,6 +24,7 @@
     "SmartLists@2.3.0": "04t8b000000jsdoAAA",
     "SmartLists@2.4.0": "04t8b000000jsoDAAQ",
     "SmartLists@3.0.0": "04t8b000000gvxCAAQ",
-    "SmartLists@3.1.0": "04t8b000000gwAgAAI"
+    "SmartLists@3.1.0": "04t8b000000gwAgAAI",
+    "SmartLists@3.2.0": "04t8b000000uWu0AAE"
   }
 }

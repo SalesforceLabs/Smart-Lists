@@ -95,7 +95,12 @@ File Preview can only be used with Files lists.</inlineHelpText>
             <value>
                 <fullName>URL</fullName>
                 <default>false</default>
-                <label>Url</label>
+                <label>URL</label>
+            </value>
+            <value>
+                <fullName>URL_LABEL</fullName>
+                <default>false</default>
+                <label>URL with Label</label>
             </value>
         </valueSetDefinition>
     </valueSet>

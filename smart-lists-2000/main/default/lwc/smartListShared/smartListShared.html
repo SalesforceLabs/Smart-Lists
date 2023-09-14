@@ -26,8 +26,16 @@
                         <div class="slds-page-header__controls">
                             <template for:each={customListActions} for:item="listAction">
                                 <div key={listAction.key} class="slds-page-header__control">
-                                    <lightning-button name={listAction.key} label={listAction.label}
+                                    <lightning-button lwc:if={listAction.availabilitySelected} name={listAction.key} label={listAction.label}
                                         disabled={recordViewer.hasNoSelectedRecords} title={listAction.label}
+                                        onclick={handleListAction}>
+                                    </lightning-button>
+                                    <lightning-button lwc:if={listAction.availabilityLoaded} name={listAction.key} label={listAction.label}
+                                        disabled={recordViewer.hasNoRecords} title={listAction.label}
+                                        onclick={handleListAction}>
+                                    </lightning-button>
+                                    <lightning-button lwc:if={listAction.availabilityAlways} name={listAction.key} label={listAction.label}
+                                        title={listAction.label}
                                         onclick={handleListAction}>
                                     </lightning-button>
                                 </div>
@@ -59,7 +67,7 @@
                                 </lightning-input>
                                 <div class="slds-popover slds-popover_tooltip slds-nubbin_top-left sl-tooltip"
                                     role="tooltip">
-                                    <div class="slds-popover__body">{filterPanel.nonSearchableFields}</div>
+                                    <div class="slds-popover__body">{filtersPanel.nonSearchableFields}</div>
                                 </div>
                             </div>
                             <div class="slds-page-header__control" lwc:if={showFilters}>
@@ -115,17 +123,26 @@
         </template>
         <div class="slds-grid">
             <div class="slds-grid slds-col sl-viewer-panel">
-                <div class="slds-col slds-no-space">
+                <template  lwc:if={leftFilters}>
+                    <div class={filtersPanelDivClass}>
+                        <c-filter-panel initialized-context={initializedContext} can-close={canCloseQuickFilters} filters-max-height={filtersMaxHeight}
+                            display-right={rightFilters} onclose={handleShowQuickFilters} onapply={handleApplyFilter}>
+                        </c-filter-panel>
+                    </div>
+                </template>
+                <div class={viewerContainerClass}>
                     <c-record-viewer row-key={rowKey} onviewersort={handleSortUpdate} onready={handleViewerReady}
                         onrowaction={handleRowAction} onloadmore={handleLoadMore} onloadall={handleLoadAll}
                         is-loading={isLoading} initialized-context={initializedContext}>
                     </c-record-viewer>
                 </div>
-                <div class={filterPanelClass}>
-                    <c-filter-panel initialized-context={initializedContext} can-close={canCloseQuickFilters}
-                        onclose={handleShowQuickFilters} onapply={handleApplyFilter}>
-                    </c-filter-panel>
-                </div>
+                <template lwc:if={rightFilters}>
+                    <div class={filtersPanelDivClass}>
+                        <c-filter-panel initialized-context={initializedContext} can-close={canCloseQuickFilters} filters-max-height={filtersMaxHeight}
+                            display-right={rightFilters} onclose={handleShowQuickFilters} onapply={handleApplyFilter}>
+                        </c-filter-panel>
+                    </div>
+                </template>
             </div>
         </div>
         <template lwc:if={errorMsg}>
@@ -150,7 +167,7 @@
             onclose={handleCloseDeleteRecord}></c-delete-record-modal>
     </template>
     <template lwc:if={showScreenFlowModal}>
-        <c-screen-flow-modal flow-name={currentFlowAction.flowName} rows={flowRows}
+        <c-screen-flow-modal flow-name={currentFlowAction.flowName} rows={flowRows} parent-id={recordId}
             modal-height={currentFlowAction.modalHeight} onclose={handleCloseScreenFlow}></c-screen-flow-modal>
     </template>
 </template>

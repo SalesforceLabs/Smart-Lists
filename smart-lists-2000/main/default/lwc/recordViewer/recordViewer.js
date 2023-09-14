@@ -35,6 +35,7 @@ export default class RecordViewer extends NavigationMixin(LightningElement) {
     // RECORDS MANAGEMENT
     @api pageSize;
     @api maxRecords;
+    @api noPaging;
 
     // SORT DATA
     // List of sort fields used by the tiles sort fields selector
@@ -63,6 +64,23 @@ export default class RecordViewer extends NavigationMixin(LightningElement) {
     _sortFieldLabel = "";
     @api get sortFieldLabel() {
         return this._sortFieldLabel;
+    }
+    _viewerWidth;
+    @api get width() {
+        return this._viewerWidth;
+    }
+    mustSetWidth = false;
+    set width(value) {
+        if (this._viewerWidth != value) {
+            this._viewerWidth = value;
+            if (!this.viewer)
+                this.mustSetWidth = true;
+            else
+                this.setWidth();
+        }
+    }
+    setWidth() {
+        this.viewer.style.width = this._viewerWidth + 'px';
     }
 
     // DATATABLE DATA
@@ -100,9 +118,15 @@ export default class RecordViewer extends NavigationMixin(LightningElement) {
     }
     _tiles;
     get tiles() {
-        if (!_tiles)
-            _tiles = this.template.querySelector('.sl-tile');
+        if (!this._tiles)
+            this._tiles = this.template.querySelector('.sl-tile');
         return this._tiles;
+    }
+    _tilesBody;
+    get tilesBody() {
+        if (!this._tilesBody)
+            this._tilesBody = this.template.querySelector('.sl-tile-body');
+        return this._tilesBody;
     }
     _scroller;
     get scroller() {
@@ -115,6 +139,12 @@ export default class RecordViewer extends NavigationMixin(LightningElement) {
         if (!this._datatableContainer)
             this._datatableContainer = this.template.querySelector('.sl-datatable-container');
         return this._datatableContainer;
+    }
+    _viewer;
+    get viewer() {
+        if (!this._viewer)
+            this._viewer = this.isTable ? this.datatableContainer : this.tilesBody;
+        return this._viewer;
     }
     
     // Display table or tiles
@@ -226,6 +256,13 @@ export default class RecordViewer extends NavigationMixin(LightningElement) {
         );
     }
 
+    renderedCallback() {
+        if (this.viewer && this.mustSetWidth) {
+            this.setWidth();
+            this.mustSetWidth = false;
+        }
+    }
+
     // Initialize datatable parameters and datatable columns
     @api initialize(listDef) {
         this.flow = listDef.flow;
@@ -235,6 +272,7 @@ export default class RecordViewer extends NavigationMixin(LightningElement) {
         this.currencyCode = listDef.currencyCode;
         this.maxRecords = listDef.maxRecords;
         this.pageSize = listDef.pageSize;
+        this.noPaging = listDef.noPaging;
         this.rowKey = listDef.rowKey;
 
         this.isTable ? this.initializeDatatable(listDef) : this.initializeTilesViewer(listDef);
@@ -259,7 +297,7 @@ export default class RecordViewer extends NavigationMixin(LightningElement) {
                     if (fieldDef.name === listDef.defaultSortField)
                         listDef.defaultSortField = fieldNameInViewer;
                 }
-                if (fieldDef.displayType === "PERCENT") {
+                else if (fieldDef.displayType === "PERCENT") {
                     fieldTransform.valueField = fieldName;
                     fieldTransform.percent = true;
                 }
@@ -375,6 +413,10 @@ export default class RecordViewer extends NavigationMixin(LightningElement) {
                 fieldTemplate.isLocation = true;
             else if (fieldDef.displayType === "URL")
                 fieldTemplate.isUrl = true;
+            else if (fieldDef.displayType === "URL_LABEL") {
+                fieldTemplate.isUrlLabel = true;
+                fieldTemplate.urlValue = fieldDef.urlValue;
+            }
             else
                 fieldTemplate.isText = true;
             this.tileBodyTemplate.push(fieldTemplate);
@@ -411,6 +453,17 @@ export default class RecordViewer extends NavigationMixin(LightningElement) {
             //
             // In formatRecord, a new field is added for fieldName + suffix for URL with the value of the corresponding url
             column.type = "url";
+            column.typeAttributes = {
+                label: {
+                    fieldName: fieldDef.name,
+                },
+                tooltip: {
+                    fieldName: fieldDef.name,
+                },
+            };
+        }  else if (fieldDef.displayType === "URL_LABEL") {
+            column.type = "url";
+            column.fieldName = fieldDef.urlValue;
             column.typeAttributes = {
                 label: {
                     fieldName: fieldDef.name,
@@ -523,7 +576,7 @@ export default class RecordViewer extends NavigationMixin(LightningElement) {
             this.clearSelection();
             this.recordsMap = new Map();
             if (this.isTable)
-                this.setPageHeight(pageRecords.length);
+                this.setPageHeight(this.noPaging ? Math.min(this.pageSize, pageRecords.length) : pageRecords.length);
         }
         if (replaceRecords && pageRecords.length == 0) {
             this.records = [];
@@ -644,6 +697,7 @@ export default class RecordViewer extends NavigationMixin(LightningElement) {
                         name: field.nameInViewer,
                         value: record[field.name],
                         url: field.isHyperlink ? record[field.nameInViewer] : '',
+                        urlValue: field.isUrlLabel ? record[field.urlValue] : '',
                         isHyperlink: field.isHyperlink,
                         isBoolean: field.isBoolean,
                         isDateTime: field.isDateTime,
@@ -658,6 +712,7 @@ export default class RecordViewer extends NavigationMixin(LightningElement) {
                         isLocation: field.isLocation,
                         isText: field.isText,
                         isUrl: field.isUrl,
+                        isUrlLabel: field.isUrlLabel,
                         fractionDigits: field.fractionDigits
                     }
                     tileRecord.fields.push(tileField);
@@ -668,7 +723,7 @@ export default class RecordViewer extends NavigationMixin(LightningElement) {
         }
     }
 
-    // Load More button has been clicked
+    // Load More button has been clicked OR scroll in datatable
     handleLoadMore() {
         this.dispatchEvent(new CustomEvent('loadmore'));
     }
@@ -688,11 +743,6 @@ export default class RecordViewer extends NavigationMixin(LightningElement) {
             (this.flow ? 0 : numRecs) +
             2;
         container.style.height = height + "px";
-    }
-
-    // Load the next page of the datatable: infinite scrolling
-    handleLoadMore(event) {
-        this.dispatchEvent(new CustomEvent('loadmore', event));
     }
 
     // A datatable row action has been selected

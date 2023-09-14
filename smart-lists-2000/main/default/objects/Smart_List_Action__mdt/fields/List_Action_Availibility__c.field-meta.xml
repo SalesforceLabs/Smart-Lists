@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>List_Action_Availibility__c</fullName>
+    <externalId>false</externalId>
+    <fieldManageability>DeveloperControlled</fieldManageability>
+    <inlineHelpText>Define when the list buttons are enabled.
+- When Records are Selected in the List: the action button is only enabled when users select records in the list. The selected records are passed to the flow
+- When Records are Loaded: the action button is only enabled when records have been loaded in the list. The loaded records are passed to the flow
+- Always: the action button is enabled all the time. The loaded records are passed to the flow</inlineHelpText>
+    <label>List Action Availibility</label>
+    <required>false</required>
+    <type>Picklist</type>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>Selected</fullName>
+                <default>true</default>
+                <label>When Records are Selected</label>
+            </value>
+            <value>
+                <fullName>Loaded</fullName>
+                <default>false</default>
+                <label>When Records are Loaded</label>
+            </value>
+            <value>
+                <fullName>Always</fullName>
+                <default>false</default>
+                <label>Always</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

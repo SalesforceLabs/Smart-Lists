@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Check_URL_Value</fullName>
+    <active>true</active>
+    <errorConditionFormula>ISBLANK( URL_Value__c ) &amp;&amp;  ISPICKVAL( Display_Type__c , &apos;URL_LABEL&apos;)</errorConditionFormula>
+    <errorDisplayField>URL_Value__c</errorDisplayField>
+    <errorMessage>URL Value is required for Display Type &apos;URL with Label&apos;</errorMessage>
+</ValidationRule>

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Filters_Panel_Layout__c</fullName>
+    <externalId>false</externalId>
+    <fieldManageability>DeveloperControlled</fieldManageability>
+    <inlineHelpText>Specifies if the Filters Panel is displayed on the right or the left of the list and if a user action is needed to display/hide it.
+On Demand: users needs to click the Show Filters button to display the panel.
+All the Time: the panel is always displayed and cannot be hidden</inlineHelpText>
+    <label>Filters Panel Layout</label>
+    <required>false</required>
+    <type>Picklist</type>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>RightOD</fullName>
+                <default>true</default>
+                <label>Right - On Demand</label>
+            </value>
+            <value>
+                <fullName>RightAT</fullName>
+                <default>false</default>
+                <label>Right - All the Time</label>
+            </value>
+            <value>
+                <fullName>LeftOD</fullName>
+                <default>false</default>
+                <label>Left - On Demand</label>
+            </value>
+            <value>
+                <fullName>LeftAT</fullName>
+                <default>false</default>
+                <label>Left - All the Time</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

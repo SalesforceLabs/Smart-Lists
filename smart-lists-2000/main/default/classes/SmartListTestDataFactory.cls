@@ -61,8 +61,10 @@ public class SmartListTestDataFactory {
         listDef.SOQL_Scope_My__c = true;
         listDef.SOQL_Scope_My_Team__c = true;
         listDef.SOQL_Scope_My_Subordinates__c = true;
+        listDef.SOQL_Scope_My_Queues__c = true;
         listDef.Default_Sort_Direction__c = 'asc';
         listDef.Display_Quick_Filters_All_the_Time__c = false;
+        listDef.Filters_Panel_Layout__c = '	LeftAT';
         listDef.Show_SOSL_Search_in_Quick_Filter__c = false;
         listDef.Max_Row_Selected__c = 2000;
         listDef.Selectable_Rows__c = true;
@@ -100,6 +102,7 @@ public class SmartListTestDataFactory {
         field4.Quick_Filters_Field__c = 'Yes if Filterable';
         field4.Lookup_in_Quick_Filters__c = true;
         field4.Lookup_Subtitle_Field__c = 'Site';
+        field4.URL_Value__c = 'CaseNumber';
         Smart_List_Field__mdt field5 = new Smart_List_Field__mdt();
         field5.Field_Name__c = 'Owner';
         field5.List_Field__c = true;
@@ -258,5 +261,38 @@ public class SmartListTestDataFactory {
         insert cv;
         
         return new FileData(cdId, cv.Id);
+    }
+    
+    public static Case createCase(String subject, Id ownerId) {
+        Case c = new Case(Subject = subject, OwnerId = ownerId);
+        insert c;
+        return c;
+    }
+    
+    public static List<Group> createCaseQueues() {
+        String profileId = [SELECT Id FROM Profile WHERE Name='System Administrator' LIMIT 1].Id;
+        //UserRole ceoRole = SmartListTestDataFactory.createUserRole('CEO', null);
+        List<Group> result = new List<Group>();
+        List<GroupMember> gms = new List<GroupMember>();
+        Id userId = UserInfo.getUserId();
+        User user1 = SmartListTestDataFactory.createTestUser(profileId, null);
+        System.runAs(user1) {
+            for (Integer i = 0; i < 3; i++) {
+                result.add(new Group(Name='Queue'+i, type='Queue'));
+            }
+        	insert result;
+            gms.add(new GroupMember(GroupId=result.get(0).Id, UserOrGroupId=userId));
+            gms.add(new GroupMember(GroupId=result.get(1).Id, UserOrGroupId=userId));
+        	insert gms;
+        }
+        User user2 = SmartListTestDataFactory.createTestUser(profileId, null);
+        System.runAs(user2) {
+            List<QueuesObject> qsos = new List<QueuesObject>();
+            for (Group grp : result) {
+                qsos.add(new QueueSObject(QueueID = grp.id, SObjectType = 'Case'));
+            }
+            insert qsos;
+        }
+        return result;
     }
 }

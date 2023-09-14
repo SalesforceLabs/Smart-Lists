@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>SOQL_Scope_My_Queues__c</fullName>
+    <defaultValue>false</defaultValue>
+    <externalId>false</externalId>
+    <fieldManageability>DeveloperControlled</fieldManageability>
+    <inlineHelpText>Returns records owned by queues the running user is part of</inlineHelpText>
+    <label>Visibility Filter - My Queues</label>
+    <type>Checkbox</type>
+</CustomField>

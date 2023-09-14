@@ -47,11 +47,19 @@
             </layoutItems>
             <layoutItems>
                 <behavior>Edit</behavior>
-                <field>Selectable_Rows__c</field>
+                <field>Disable_Autoload__c</field>
             </layoutItems>
             <layoutItems>
                 <behavior>Edit</behavior>
-                <field>Display_Quick_Filters_All_the_Time__c</field>
+                <field>Selectable_Rows__c</field>
+            </layoutItems>
+            <layoutItems>
+                <behavior>Required</behavior>
+                <field>Filters_Panel_Layout__c</field>
+            </layoutItems>
+            <layoutItems>
+                <behavior>Required</behavior>
+                <field>Show_SOSL_Search__c</field>
             </layoutItems>
         </layoutColumns>
         <layoutColumns>
@@ -68,12 +76,16 @@
                 <field>Number_of_Records_per_Page__c</field>
             </layoutItems>
             <layoutItems>
+                <behavior>Edit</behavior>
+                <field>Disable_Paging__c</field>
+            </layoutItems>
+            <layoutItems>
                 <behavior>Required</behavior>
                 <field>Max_Row_Selected__c</field>
             </layoutItems>
             <layoutItems>
-                <behavior>Required</behavior>
-                <field>Show_SOSL_Search__c</field>
+                <behavior>Edit</behavior>
+                <field>Filters_Max_Height__c</field>
             </layoutItems>
             <layoutItems>
                 <behavior>Edit</behavior>
@@ -195,6 +207,10 @@
             <layoutItems>
                 <behavior>Edit</behavior>
                 <field>SOQL_Scope_My_Team__c</field>
+            </layoutItems>
+            <layoutItems>
+                <behavior>Edit</behavior>
+                <field>SOQL_Scope_My_Queues__c</field>
             </layoutItems>
         </layoutColumns>
         <style>TwoColumnsLeftToRight</style>

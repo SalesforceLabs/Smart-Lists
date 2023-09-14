@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Disable_Paging__c</fullName>
+    <defaultValue>false</defaultValue>
+    <externalId>false</externalId>
+    <fieldManageability>DeveloperControlled</fieldManageability>
+    <inlineHelpText>If checked, the paging mode is disabled and all the records are loaded when the list is displayed for the first time or a search is made in the Filters panel</inlineHelpText>
+    <label>Disable Paging</label>
+    <type>Checkbox</type>
+</CustomField>
