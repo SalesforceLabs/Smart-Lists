@@ -81,6 +81,7 @@ global with sharing class SmartListController {
         Definition of a Quick Filters Lookup for LWC
         - value: Object API name
         - label: Object plural label
+        - titleField: name field displayed as title of found records by the lookup search
         - subtitleField: field displayed as subtitle of found records by the lookup search
         - iconName: LWC name of the Object icon
      */
@@ -127,7 +128,7 @@ global with sharing class SmartListController {
         String iconName = 'standard:default';
         for (TabDefinition td : [SELECT IsCustom, (SELECT Url FROM Icons WHERE ContentType LIKE 'image/svg%') FROM TabDefinition WHERE SobjectName = :objectName]) {
             if (td.Icons.size() > 0) {
-                String iconCategory = td.isCustom ? 'custom' : 'standard';
+                String iconCategory = td.Icons.get(0).Url.contains('custom/') ? 'custom' : 'standard';
                 iconName = iconCategory + ':' + td.Icons.get(0).Url.substringBetween(iconCategory + '/','.svg').substringBefore('_');
             }
         }
@@ -140,7 +141,7 @@ global with sharing class SmartListController {
         - name: API name of the field displayed in the List. Example: RecordType.Name
         - quickFiltersname: API name of the field used for searching the records in the Quick Filters: Example: RecordTypeId
         - displayType: data type of the field or specifying field rendering option : Hyperkink to Detail, File Preview
-        - type: physical data type of the field in the list. SFDC data type or HTML for rendering HTML formatted fields
+        - type: physical data type of the field in the list. SFDC data type or HTML for rendering HTML formatted fields/LOOKUP for editing/searching fields as lookups
         - hyperlinkIdField: For Hyperlink to Detail, field of the target object containing the Id of the target record
         - urlLabel: For URL with Label, field used as the label of the URL
         - editable: if true, running user can edit the field
@@ -168,6 +169,7 @@ global with sharing class SmartListController {
         public String quickFiltersName;
         public String displayType;
         public String type;
+        public String length;
         public String fractionDigits;
         public String hyperlinkIdField;
         public String urlValue;
@@ -175,6 +177,7 @@ global with sharing class SmartListController {
         public Boolean sortable;
         public Boolean filterable;
         public Boolean nonSearchable;
+        public Boolean required;
         public Boolean listField;
         public Integer displayPositionInList;
         public Integer displayPositionInQuickFilters;
@@ -200,6 +203,9 @@ global with sharing class SmartListController {
             nonSearchable = !((gdr.dfr.getType() == Schema.DisplayType.EMAIL || gdr.dfr.getType() == Schema.DisplayType.PHONE || 
                 gdr.dfr.getType() == Schema.DisplayType.STRING || gdr.dfr.getType() == Schema.DisplayType.TEXTAREA || gdr.dfr.getType() == Schema.DisplayType.URL) && 
                 !gdr.dfr.isCalculated() && !slf.Field_Name__c.contains('.'));
+            Schema.DescribeFieldResult dfrForEdit =  gdr.relDfr == null ? gdr.dfr : gdr.relDfr;
+            editable = slf.Editable_in_List__c && dfrForEdit.isUpdateable() && dfrForEdit.getType() != Schema.DisplayType.MULTIPICKLIST && dfrForEdit.getType() != Schema.DisplayType.LOCATION;
+            required = !dfrForEdit.isNillable() || dfrForEdit.isNameField();
             // RecordType Field: Quick Filters picklist values = Active and not master Record Types
             if (slf.Field_Name__c == RECORDTYPE_FIELD) {
                 for (Schema.RecordTypeInfo rti : rtis) {
@@ -210,6 +216,7 @@ global with sharing class SmartListController {
                 quickFiltersName = 'RecordTypeId';
                 type = Schema.DisplayType.PICKLIST.name();
                 nonSearchable = true;
+                editable = false;
             } 
             // Owner field: lookup with user + optional lookup with queues if object supports queues
             else if (slf.Field_Name__c == OWNER_FIELD) {
@@ -219,8 +226,10 @@ global with sharing class SmartListController {
                     lookups.add(new Lookup('Queue', System.Label.LookupQueues, gdr.lookupTitleField, null, 'standard:orders'));
                 name = 'Owner.Name';
                 quickFiltersName = 'OwnerId';
+                slf.Lookup_in_Quick_Filters__c = true;
                 type = 'LOOKUP';
                 nonSearchable = true;
+                editable = false;
             } 
             // Object icon for Lookup field: retrieve icon for standard/custom objects
             else if (slf.Lookup_in_Quick_Filters__c) {
@@ -236,12 +245,12 @@ global with sharing class SmartListController {
                 quickFiltersName = slf.Field_Name__c;
                 type = gdr.dfr.isHtmlFormatted() ? 'HTML' : gdr.dfr.getType().name();
             }
+            length = String.valueOf(gdr.dfr.getLength());
             fractionDigits = String.valueOf(gdr.dfr.getScale());
             displayType = slf.Display_Type__c == TYPE_HYPERLINK_DETAIL || slf.Display_Type__c == TYPE_FILE_PREVIEW || slf.Display_Type__c == TYPE_URL_LABEL ?
                 slf.Display_Type__c : type;
             hyperlinkIdField = slf.Hyperlink_to_Detail_Id_Field__c;
             urlValue = slf.URL_Value__c;
-            editable = gdr.dfr.isUpdateable();
             sortable = (slf.Sortable_in_List__c == null || slf.Sortable_in_List__c == 'Yes if Sortable') && gdr.dfr.isSortable();
             if (isExternalObject && name.contains('.'))
                 sortable = false;
@@ -257,7 +266,7 @@ global with sharing class SmartListController {
             listField = slf.List_Field__c;
             displayPositionInList = (Integer)slf.Display_Position__c;
             displayPositionInQuickFilters = slf.Quick_Filters_Field__c == null ? (Integer)slf.Display_Position__c : (Integer)slf.Display_Position_in_Quick_Filters__c;
-            editField = slf.File_Edit__c != null;
+            editField = slf.File_Edit__c != null && gdr.dfr.isUpdateable();
             requiredOnEdit = slf.File_Edit__c == 'EditableRequired';
             dbRequired = !gdr.dfr.nillable;
             columnWidth = (Integer)slf.Column_Width__c;
@@ -277,7 +286,7 @@ global with sharing class SmartListController {
             displayType = slf.Display_Type__c;
             hyperlinkIdField = slf.Hyperlink_to_Detail_Id_Field__c;
             urlValue = slf.URL_Value__c;
-            // Quick_Filters_Field__c, Display_Position_in_Quick_Filters__c, Sortable_in_List__c
+            editable = false;
             sortable = (slf.Sortable_in_List__c == null && slf.Sortable__c) || slf.Sortable_in_List__c == 'Yes if Sortable';
             filterable = (slf.Quick_Filters_Field__c == null && slf.Filterable__c) || slf.Quick_Filters_Field__c == 'Yes if Filterable';
             // Set SOQL operators for quick filters
@@ -612,7 +621,7 @@ global with sharing class SmartListController {
             return [SELECT Display_Position__c, Display_Type__c, Field_Label__c, Field_Name__c, List_Field__c, Default_Sort_Field__c, 
                         File_Edit__c, Sortable__c, Filterable__c, Column_Width__c, Wrap_Text__c, Display_as_Badge__c, Badge_Style_Field__c, Tile_Header__c,
                         Quick_Filters_Field__c, Display_Position_in_Quick_Filters__c, Hyperlink_to_Detail_Id_Field__c, URL_Value__c,
-                        Sortable_in_List__c, Lookup_in_Quick_Filters__c, Lookup_Subtitle_Field__c
+                        Sortable_in_List__c, Editable_in_List__c, Lookup_in_Quick_Filters__c, Lookup_Subtitle_Field__c
                     FROM Smart_List_Field__mdt WHERE Smart_List_Definition__c = :listId ORDER BY Display_Position__c DESC];
         else
             return listFields;
@@ -836,15 +845,12 @@ global with sharing class SmartListController {
         // List of fields that need to be added to the SOQL query
         Set<String> additionalFields = new Set<String>();
         List<Schema.RecordTypeInfo> rtis = baseObject.dsor.getRecordTypeInfos();
-        Boolean hasRecordType = false;
         Boolean isExternalObject = result.objectName.endsWith('__x');
         // Process list fields
         for (Smart_List_Field__mdt slf : slfs) {
             // Cannot add field twice to the list because will trigger SOQL error
             if (result.fields.containsKey(slf.Field_Name__c))
                 throw new SmartListException('Field \'' + slf.Field_Name__c + '\' cannot be added twice');
-            if (slf.Field_Name__c == RECORDTYPE_FIELD)
-                hasRecordType = true;
             // Get Apex definition of the field
             GetDfrResult gdr = getDfr(slf.Field_Name__c, slf, baseObject, objectsCache);
             if (gdr != null) {
@@ -865,6 +871,9 @@ global with sharing class SmartListController {
                         throw new SmartListException('Field \'' + slf.Field_Name__c + '\': Invalid Badge Style field \'' + slf.Badge_Style_Field__c + '\'');
                     additionalFields.add(slf.Badge_Style_Field__c);
                 }
+                // Add relationship field for lookup fields
+                if (slf.Display_Type__c == 'LOOKUP')
+                    additionalFields.add(gdr.relDfr.getName());
                 result.fields.put(fd.name, fd);
                 String columnName = fd.name;
                 // Query picklist fields with toLabel to make sure they are translated in the list
@@ -887,7 +896,7 @@ global with sharing class SmartListController {
             additionalFields.add('ContentSize');
         }
         // Add RecordTypeId
-        if (!hasRecordType && result.recordTypes.size() > 0 && !result.fields.containsKey('RecordTypeId'))
+        if (result.recordTypes.size() > 0 && !result.fields.containsKey('RecordTypeId'))
             additionalFields.add('RecordTypeId');
         // Create LWC field definition for additional fields and add them to the query
         for (String additionalField : additionalFields) {
@@ -948,6 +957,8 @@ global with sharing class SmartListController {
         // Check if related field
         if (field.contains('.')) {
             String[] parts = field.split('\\.');
+            if (slf.Display_Type__c == 'LOOKUP' && parts.size() > 2)
+                throw new SmartListException('Field \'' + field + '\': The Lookup display type can only be used on parent fields such as Child__r.Parent__c. Not on grand parent fields  such as Child__r.Parent__r.GrandParent__c.');
             ObjectCacheEntry currentOjbect = baseObject;
             ObjectCacheEntry relObject ;
             String hyperlinkIdField = '';
@@ -982,7 +993,7 @@ global with sharing class SmartListController {
             if (slf.Display_Type__c == TYPE_HYPERLINK_DETAIL && String.isEmpty(slf.Hyperlink_to_Detail_Id_Field__c))
                 slf.Hyperlink_to_Detail_Id_Field__c = hyperlinkIdField;
             // Check validity of the lookup data if getDfr not called for additional/lookup fields
-            if (slf != null && slf.Lookup_in_Quick_Filters__c ) {
+            if (slf != null && (slf.Lookup_in_Quick_Filters__c || slf.Display_Type__c == 'LOOKUP')) {
                 slf.Lookup_in_Quick_Filters__c = true;
                 checkLookupValidity(field, slf, relObject, gdr);
             }
@@ -1021,6 +1032,9 @@ global with sharing class SmartListController {
             }
             // Other base field
             else {
+                // Check Loopkup validity
+                if (slf.Display_Type__c == 'LOOKUP')
+                    throw new SmartListException('Field \'' + field + '\': The Lookup display type cannot be used on base fields, only on parent fields such as Child__r.Parent__c.');
                 checkFieldValidity(field, baseObject, gdr, field);
                 // Set HyperlinkId Field for HYPERLINK_DETAIL if needed
                 if (slf != null && slf.Display_Type__c == TYPE_HYPERLINK_DETAIL && String.isEmpty(slf.Hyperlink_to_Detail_Id_Field__c))

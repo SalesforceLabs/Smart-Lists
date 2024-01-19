@@ -1,0 +1,8 @@
+<template>
+    <template lwc:if={url}>
+        <lightning-formatted-url value={url} tooltip={value} label={value} target={target} ></lightning-formatted-url>
+    </template>
+    <template lwc:else>
+        <lightning-formatted-text value={value}></lightning-formatted-text>
+    </template>
+</template>

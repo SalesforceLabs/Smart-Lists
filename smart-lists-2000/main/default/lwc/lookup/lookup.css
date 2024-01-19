@@ -13,6 +13,13 @@
 .slds-combobox__input.has-custom-height {
     height: 32px !important;
 }
+.slds-combobox__input.has-custom-error {
+    border: 1px solid rgb(186, 5, 23);
+    box-shadow: rgb(186, 5, 23) 0 0 0 1px inset;
+}
+.slds-combobox_container.has-custom-error {
+    border: none !important;
+}
 .sl_listbox {
     overflow: visible!important;
 }

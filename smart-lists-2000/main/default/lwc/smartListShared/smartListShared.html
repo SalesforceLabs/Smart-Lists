@@ -1,5 +1,10 @@
 <template>
     <article class={articleClass}>
+        <template lwc:if={showSpinner}>
+                <lightning-spinner alternative-text={labels.labelLoading} size="small"
+                    variant="brand"></lightning-spinner>
+        </template>
+
         <div class={pageHeaderClass}>
             <template lwc:if={initializedContext}>
                 <div class="slds-page-header__row">
@@ -115,12 +120,6 @@
                 </div>
             </template>
         </div>
-        <template lwc:if={showSpinner}>
-            <div class="slds-page-header__row">
-                <lightning-spinner alternative-text={labels.labelLoading} size="small"
-                    variant="brand"></lightning-spinner>
-            </div>
-        </template>
         <div class="slds-grid">
             <div class="slds-grid slds-col sl-viewer-panel">
                 <template  lwc:if={leftFilters}>
@@ -132,7 +131,7 @@
                 </template>
                 <div class={viewerContainerClass}>
                     <c-record-viewer row-key={rowKey} onviewersort={handleSortUpdate} onready={handleViewerReady}
-                        onrowaction={handleRowAction} onloadmore={handleLoadMore} onloadall={handleLoadAll}
+                        onrowaction={handleRowAction} onloadmore={handleLoadMore} onloadall={handleLoadAll} onrecordsupdated={handleRecordsUpdated}
                         is-loading={isLoading} initialized-context={initializedContext}>
                     </c-record-viewer>
                 </div>

@@ -169,6 +169,13 @@
         <value>Your company doesn&apos;t support the following file types:</value>
     </labels>
     <labels>
+        <fullName>Errors</fullName>
+        <language>en_US</language>
+        <protected>false</protected>
+        <shortDescription>Errors(s)</shortDescription>
+        <value>Errors(s)</value>
+    </labels>
+    <labels>
         <fullName>File</fullName>
         <language>en_US</language>
         <protected>false</protected>
@@ -407,6 +414,13 @@
         <value>No items to display.</value>
     </labels>
     <labels>
+        <fullName>NoneValue</fullName>
+        <language>en_US</language>
+        <protected>false</protected>
+        <shortDescription>NoneValue</shortDescription>
+        <value>--None--</value>
+    </labels>
+    <labels>
         <fullName>Owner</fullName>
         <language>en_US</language>
         <protected>false</protected>
@@ -489,6 +503,13 @@
         <protected>false</protected>
         <shortDescription>Save</shortDescription>
         <value>Save</value>
+    </labels>
+    <labels>
+        <fullName>SavedChanges</fullName>
+        <language>en_US</language>
+        <protected>false</protected>
+        <shortDescription>SavedChanges</shortDescription>
+        <value>Your changes has been saved</value>
     </labels>
     <labels>
         <fullName>SearchBoxLabel</fullName>

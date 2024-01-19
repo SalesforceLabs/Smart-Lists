@@ -6,7 +6,8 @@
         </label>
         <div class="slds-form-element__control">
             <template lwc:if={showObjectsSelector}>
-                <lightning-combobox label={objectSelectorDescriptiveText} value={selectedObject.value} options={objects} variant="label-hidden" onchange={handleSelectObject} >
+                <lightning-combobox label={objectSelectorDescriptiveText} value={selectedObject.value} options={objects}
+                    variant="label-hidden" onchange={handleSelectObject}>
                 </lightning-combobox>
             </template>
             <div class={getContainerClass} style="width: 100%">
@@ -14,8 +15,8 @@
                     role="combobox">
                     <!-- Search input start -->
                     <div class={getComboboxClass} role="none">
-                        <lightning-icon icon-name={getSelectIconName} size="small"
-                            alternative-text="Selected item icon" class={getSelectIconClass}>
+                        <lightning-icon icon-name={getSelectIconName} size="small" alternative-text="Selected item icon"
+                            class={getSelectIconClass}>
                         </lightning-icon>
 
                         <!-- Text input -->
@@ -28,6 +29,17 @@
                         <!-- Search icon -->
                         <lightning-icon icon-name="utility:search" size="x-small" alternative-text="Search icon"
                             class={getSearchIconClass}></lightning-icon>
+                        
+                        <!-- Clear selection button icon for datatable editor -->
+                        <template lwc:if={isDatatableEditor}>
+                            <button title="Remove selected option" type="button" onclick={handleClearSelection}
+                                class={getClearSelectionButtonClass} disabled={disabled}>
+                                <lightning-icon icon-name="utility:close" size="x-small"
+                                    alternative-text="Remove selected option"
+                                    class="slds-button__icon"></lightning-icon>
+                            </button>
+                        </template>
+
                     </div>
                     <!-- Search input end -->
 

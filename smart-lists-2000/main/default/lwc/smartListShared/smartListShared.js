@@ -1,5 +1,6 @@
 import { LightningElement, api } from "lwc";
 import { ShowToastEvent } from "lightning/platformShowToastEvent";
+import { updateRecord } from "lightning/uiRecordApi";
 
 import getListParameters from "@salesforce/apex/SmartListController.getListParameters";
 import getPage from "@salesforce/apex/SmartListController.getPage";
@@ -25,6 +26,8 @@ import labelSortDescending from "@salesforce/label/c.SortDescending";
 import labelFilterSOSLSearchTooShortError from "@salesforce/label/c.FilterSOSLSearchTooShortError";
 import labelSearchBoxPlaceholder from "@salesforce/label/c.SearchBoxPlaceholder";
 import labelSearchBoxLabel from "@salesforce/label/c.SearchBoxLabel";
+import labelSavedChanges from "@salesforce/label/c.SavedChanges";
+import labelErrors from "@salesforce/label/c.Errors";
 
 export default class SmartListShared extends LightningElement {
     // PARAMETERS FROM LWC
@@ -92,7 +95,9 @@ export default class SmartListShared extends LightningElement {
         labelSortDescending,
         labelFilterSOSLSearchTooShortError,
         labelSearchBoxPlaceholder,
-        labelSearchBoxLabel
+        labelSearchBoxLabel,
+        labelSavedChanges,
+        labelErrors
     };
 
     // GET RECORDS VARIABLES
@@ -602,7 +607,7 @@ export default class SmartListShared extends LightningElement {
     endFlow(result) {
         this.showSpinner = false;
         if (result.successMsg)
-            this.displaySuccess(result.successMsg);
+            this.displaySuccess(null, result.successMsg);
         else if (result.errorMsg)
             this.displayError(result.errorMsg);
         // Clear selection in viewer in case they are no longer displayed after the action because of filter
@@ -628,11 +633,62 @@ export default class SmartListShared extends LightningElement {
         this.currentRecordId = null;
         if (event.detail.action === 'success') {
             this.loadFirstPage();
-            this.displaySuccess(event.detail.msg, null);
+            this.displaySuccess(null, event.detail.msg);
         } else if (event.detail.action === 'error')
             this.displayError(event.detail.msg, event.detail.title);
     }
 
+    // Update records from datatable inline edit
+    async handleRecordsUpdated(event) {
+        let errors = { table: {}, rows: {} };
+        const tableError = { title: this.labels.labelErrors, messages: [] };
+        let hasErrors = false;
+        const refreshIds = [];
+        for (const record of event.detail.records) {
+            let recId = record.fields['Id'];
+            // Update all records in parallel thanks to the UI API
+            await updateRecord(record).then(() => {
+                refreshIds.push(recId);
+            }).catch((error) => {
+                hasErrors = true;
+                this.draftValues = event.detail.draftValues;
+                // Validation errors found
+                if (error.body.output) {
+                    const tableErrors = error.body.output.errors;
+                    if (tableErrors.length > 0) {
+                        for (const error of Object.getOwnPropertyNames(tableErrors)) {
+                            if (tableErrors[error].message)
+                                tableError.messages.push(tableErrors[error].message);
+                        }
+                    }
+                    const fieldErrors = error.body.output.fieldErrors;
+                    for (const fieldName of Object.getOwnPropertyNames(fieldErrors)) {
+                        const fieldError = fieldErrors[fieldName];
+                        const error = { title: this.labels.labelErrors, messages: [], fieldNames: [] }
+                        for (const fieldErrorDetail of fieldError) {
+                            error.messages.push(fieldErrorDetail.message);
+                            error.fieldNames.push(fieldErrorDetail.field);
+                            tableError.messages.push(fieldErrorDetail.message);
+                        }
+                        errors.rows[recId] = error;
+                    }                
+                }
+                // Other error
+                else {
+                    tableError.messages.push(error.body.message);
+                }
+            });
+        }
+        if (tableError.messages.length > 0)
+            errors.table = tableError;
+        for (const id of refreshIds) {
+            this.refreshRecord(id, id);
+        }
+        this.recordViewer.afterDatatableSave(hasErrors, errors);
+        if (!hasErrors)
+            this.displaySuccess(null, this.labels.labelSavedChanges);
+        this.showSpinner = false;
+    }
 
     // Refresh a record from the database
     @api refreshRecord(newId, oldId) {
@@ -660,6 +716,7 @@ export default class SmartListShared extends LightningElement {
     }
 
     displayErrorInList(msg) {
+        console.log('InitError ' + JSON.stringify(msg));
         let errorMsg = this.parseError(msg);
         console.log(errorMsg);
         if (errorMsg && errorMsg.includes("###")) {

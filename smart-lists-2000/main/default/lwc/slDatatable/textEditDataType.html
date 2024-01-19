@@ -1,0 +1,14 @@
+<template>
+    <template lwc:if={typeAttributes.isPhone}>
+        <lightning-input type="tel" value={editedValue} required={typeAttributes.required} variant="label-hidden" data-inputable="true"></lightning-input>
+    </template>
+    <template lwc:if={typeAttributes.isEmail}>
+        <lightning-input type="email" value={editedValue} required={typeAttributes.required} variant="label-hidden" data-inputable="true"></lightning-input>
+    </template>
+    <template lwc:if={typeAttributes.isText}>
+        <lightning-input type="text" value={editedValue} required={typeAttributes.required} variant="label-hidden" data-inputable="true"></lightning-input>
+    </template>
+    <template lwc:if={typeAttributes.isTextArea}>
+        <lightning-textarea value={editedValue} required={typeAttributes.required} variant="label-hidden" data-inputable="true"></lightning-textarea>
+    </template>
+</template>

@@ -21,7 +21,7 @@ const REGEX_SOSL_RESERVED = /(\?|&|\||!|\{|\}|\[|\]|\(|\)|\^|~|\*|:|"|\+|-|\\)/g
 const REGEX_EXTRA_TRAP = /(\$|\\)/g;
 
 export default class Lookup extends LightningElement {
-    // Labels
+    // LABELS
     labels = {
         labelLookupPlaceholder,
         labelLookupRecent,
@@ -29,15 +29,51 @@ export default class Lookup extends LightningElement {
         labelLookupNoResults,
         labelLoading
     }
-    // Public properties
+    // PUBLIC PROPERTIES
     @api variant = VARIANT_LABEL_STACKED;
+    // Object types for selecting the records
     @api objects = [];
-    @api label = '';
     @api required = false;
     @api disabled = false;
     @api scrollAfterNItems = null;
     @api minSearchTermLength = 2;
-    // Template properties
+    // Filters Panel: field label
+    @api label;
+    // Parent container dimensions
+    @api parentTop;
+    @api parentLeft;
+    @api parentHeight;
+    @api parentWidth;
+    // Datatable Editor: object name
+    @api objectName;
+    // Datatable Editor: object label
+    @api objectLabel;
+    // Datatable Editor: title field
+    @api titleField;
+    // Datatable Editor: subtitle field
+    @api subtitleField;
+    // Datatable Editor: object icon
+    @api objectIcon;
+    // Datatable Editor: Id of the record edited in the datatable
+    @api recordId;
+    // Datatable Editor: Name of the field edited in the datatable
+    @api fieldName;
+    // Datatable Editor: Name of the field to be updated
+    @api targetField;
+    // Datatable Editor: Id of the related record in the datatable cell
+    @api relatedRecordId;
+    // Datatable Editor: Display value passed by the datatable
+    _displayValue = '';
+    @api get displayValue() {
+        return this._displayValue;
+    }
+    set displayValue(value) {
+        this._displayValue = value;
+    }
+    // TEMPLATE PROPERTIES
+    get isDatatableEditor() {
+        return this.recordId;
+    }
     searchResultsLocalState = [];
     loading = false;
     showDefaultResults = false;
@@ -46,7 +82,7 @@ export default class Lookup extends LightningElement {
     showObjectsSelector = false;
     objectSelectorDescriptiveText = '';
     placeholder = '';
-    // Private properties
+    // PRIVATE PROPERTIES
     _hasFocus = false;
     _isDirty = false;
     _searchTerm = '';
@@ -59,26 +95,43 @@ export default class Lookup extends LightningElement {
     _focusedResultIndex = null;
 
     connectedCallback() {
+        // If called from datatable editor, create the selected value if cell is not empty
+        if (this.isDatatableEditor)
+            this.objects = [ { value: this.objectName, titleField: this.titleField, subtitleField: this.subtitleField,
+                    label: this.objectLabel, iconName: this.objectIcon} ];
         this.showObjectsSelector = this.objects.length > 1;
         this.selectedObject = this.objects[0];
         this.updateObjectSelection();
+        if (this.isDatatableEditor)
+            this._value = this.relatedRecordId && this._displayValue !== ' ' ?  
+                { title: this._displayValue, id: this.relatedRecordId, icon: this.objectIcon } :
+                {};
     }
 
+    mustFocus = true;
     renderedCallback() {
-        if (this.isListboxOpen) {
-            const constainerRect = this.template.querySelector('.sl-container').getBoundingClientRect();
+        if (!this.isListboxOpen) {
+            if (this.isDatatableEditor && this.mustFocus) {
+                this.template.querySelector('input').focus();
+                this.mustFocus = false;
+            }            
+            const containerRect = this.template.querySelector('.sl-container').getBoundingClientRect();
             const listbox = this.template.querySelector('.sl_listbox');
             const listboxRect = listbox.getBoundingClientRect();
-            if (listboxRect.height >= constainerRect.height && constainerRect.bottom + listboxRect.height > document.documentElement.clientHeight)
+            const parentHeight = this.parentTop + this.parentHeight;
+            if (listboxRect.height >= containerRect.height && 
+                    containerRect.bottom + listboxRect.height > Math.min(parentHeight, document.documentElement.clientHeight) &&
+                    containerRect.top - listboxRect.height - 4 >= this.parentTop)
                 listbox.style.top = -(listboxRect.height + 4) + "px";
             else
-                listbox.style.top = (constainerRect.height) + "px";
+                listbox.style.top = (containerRect.height) + "px";
         }
     }
 
     // PUBLIC FUNCTIONS AND GETTERS/SETTERS
     @api get value() {
-        return this._value;
+        // If datatable editor: return displayValue needed for updating the table. If Filters Panel: return full value needed for Cancel action
+        return this.isDatatableEditor ? (this._value.title ? this._value.title : " ") : this._value;
     }
     set value(value) {
         this._value = value;
@@ -193,12 +246,21 @@ export default class Lookup extends LightningElement {
         // Indicate that component was interacted with
         this._isDirty = isUserInteraction;
         // Blur input after single select lookup selection
-        if (this.hasSelection()) {
+        if (this.hasSelection())
             this._hasFocus = false;
-        }
         // If selection was changed by user, notify parent components
         if (isUserInteraction) {
-            this.dispatchEvent(new CustomEvent('selectionchange', { detail: this._value }));
+            if (this.isDatatableEditor) {
+                const detail = { value: this._value.id, label: this.value, fieldName: this.fieldName, 
+                        targetField: this.targetField, recordId: this.recordId };
+                this.dispatchEvent(new CustomEvent('celledited', {
+                    composed: true,
+                    bubbles: true,
+                    cancelable: true,
+                    detail: detail
+                }));
+            } else
+                this.dispatchEvent(new CustomEvent('selectionchange', { detail: this._value }));
         }
     }
 
@@ -241,14 +303,18 @@ export default class Lookup extends LightningElement {
 
     handleResultClick(event) {
         const recordId = event.currentTarget.dataset.recordid;
-
+        console.log('click');
+        setTimeout(function(){
+            console.log("Executed after 1 second");
+        }, 1000);
         // Save selection
         const selectedItem = this._searchResults.find((result) => result.id === recordId);
         if (!selectedItem) {
             return;
         }
-        this._value = selectedItem;
-
+        console.log('found');
+        this.displayValue = selectedItem.title;
+        this.value = selectedItem;
         // Process selection update
         this.processSelectionUpdate(true);
     }
@@ -284,8 +350,14 @@ export default class Lookup extends LightningElement {
             return;
         }
         this._hasFocus = false;
-        if (!this.hasSelection())
-            this.processSelectionUpdate(false);
+    }
+
+    handleClearSelection() {
+        this._value = {};
+        this._hasFocus = false;
+        // Process selection update
+        this.processSelectionUpdate(true);
+        this.template.querySelector('input').focus();
     }
 
     // STYLE EXPRESSIONS
@@ -348,6 +420,13 @@ export default class Lookup extends LightningElement {
         let css = 'slds-input__icon slds-input__icon_right ';
         css += this.hasSelection() ? 'slds-hide' : '';
         return css;
+    }
+
+    get getClearSelectionButtonClass() {
+        return (
+            'slds-button slds-button_icon slds-input__icon slds-input__icon_right ' +
+            (this.hasSelection() ? '' : 'slds-hide')
+        );
     }
 
     get getSelectIconName() {
@@ -413,4 +492,11 @@ export default class Lookup extends LightningElement {
     }
 
     // 
+    @api get validity() {
+        return this.template.querySelector('input').validity;
+    }
+
+    @api showHelpMessageIfInvalid() {
+        this.template.querySelector('input').showHelpMessageIfInvalid();
+    }
 }

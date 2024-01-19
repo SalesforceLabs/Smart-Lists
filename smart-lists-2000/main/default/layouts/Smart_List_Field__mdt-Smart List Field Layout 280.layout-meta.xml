@@ -129,6 +129,10 @@
                 <behavior>Edit</behavior>
                 <field>Column_Width__c</field>
             </layoutItems>
+            <layoutItems>
+                <behavior>Edit</behavior>
+                <field>Editable_in_List__c</field>
+            </layoutItems>
         </layoutColumns>
         <layoutColumns>
             <layoutItems>

@@ -103,6 +103,10 @@ export default class RecordViewer extends NavigationMixin(LightningElement) {
         this._canLoadData = value;
     }
     loadStatus;
+    draftValues = [];
+    saveBarDisplayed = false;
+    errors;
+    editedCells = new Map();
 
     // TILES DATA
     tilesHeight;
@@ -140,13 +144,29 @@ export default class RecordViewer extends NavigationMixin(LightningElement) {
             this._datatableContainer = this.template.querySelector('.sl-datatable-container');
         return this._datatableContainer;
     }
+    @api get parentTop() {
+        return this.viewer ? this.viewer.getBoundingClientRect().top : null;
+
+    }
+    @api get parentLeft() {
+        return this.viewer ? this.viewer.getBoundingClientRect().left : null;
+
+    }
+    @api get parentHeight() {
+        return this.viewer ? this.viewer.getBoundingClientRect().height : null;
+
+    }
+    @api get parentWidth() {
+        return this.viewer ? this.viewer.getBoundingClientRect().width : null;
+
+    }
     _viewer;
     get viewer() {
         if (!this._viewer)
             this._viewer = this.isTable ? this.datatableContainer : this.tilesBody;
         return this._viewer;
     }
-    
+
     // Display table or tiles
     get isTable() {
         return this.displayMode == 'Table';
@@ -276,30 +296,26 @@ export default class RecordViewer extends NavigationMixin(LightningElement) {
         this.rowKey = listDef.rowKey;
 
         this.isTable ? this.initializeDatatable(listDef) : this.initializeTilesViewer(listDef);
+        const columns = [];
         const sortableFields = [];
         const isApex = listDef.dataSourceType.startsWith("Apex");
         for (const fieldName of Object.getOwnPropertyNames(listDef.fields)) {
             const fieldDef = listDef.fields[fieldName];
             let fieldTransform = {};
             if (fieldDef.listField) {
-                let fieldNameInViewer = fieldName;
+                let urlField = '';
                 const isRelatedField = fieldName.includes('.') && !isApex;
                 const isRecordLink = this.isRecordLink(listDef, fieldDef);
                 const isPreviewLink = this.isPreviewLink(listDef, fieldDef);
                 if (isRecordLink || isPreviewLink) {
-                    fieldNameInViewer = fieldName + this.hyperlinkFieldSuffix;
+                    urlField = fieldName + this.hyperlinkFieldSuffix;
                     const idField = isRelatedField ? fieldDef.hyperlinkIdField.substring(fieldDef.hyperlinkIdField.lastIndexOf('.') + 1) : fieldDef.hyperlinkIdField;
                     const url = isPreviewLink ? this.filePreviewUrl : this.recordDetailUrl;
                     fieldTransform.valueField = fieldName;
-                    fieldTransform.hyperlink = { field: fieldNameInViewer, idField: idField, url: url };
-                    // Special handling for sort on hyperlink field: need to add the hyperlink suffix which is used in the table
-                    // Default sort field must be adjusted
-                    if (fieldDef.name === listDef.defaultSortField)
-                        listDef.defaultSortField = fieldNameInViewer;
-                }
-                else if (fieldDef.displayType === "PERCENT") {
+                    fieldTransform.hyperlink = { field: urlField, idField: idField, url: url };
+                } else if (fieldDef.displayType === "TIME") {
                     fieldTransform.valueField = fieldName;
-                    fieldTransform.percent = true;
+                    fieldTransform.time = true;
                 }
                 if (isRelatedField) {
                     const lastDot = fieldName.lastIndexOf(".");
@@ -312,24 +328,27 @@ export default class RecordViewer extends NavigationMixin(LightningElement) {
                 if (Object.keys(fieldTransform).length > 0)
                     this.fieldsTransform.push(fieldTransform);
                 if (fieldDef.sortable)
-                    sortableFields.push({name: fieldNameInViewer, label: fieldDef.label});
-                this.isTable ? this.initalizeDatatableField(fieldDef, fieldNameInViewer, listDef) :
-                    this.initializeTilesViewerField(fieldDef, fieldNameInViewer, listDef);
+                    sortableFields.push({ name: fieldName, label: fieldDef.label });
+                if (this.isTable)
+                    columns.push(this.initalizeDatatableField(fieldDef, urlField, listDef));
+                else
+                    this.initializeTilesViewerField(fieldDef, urlField, listDef);
             }
         }
         if (this.isTable) {
             if (listDef.rowActions && listDef.rowActions.length > 0) {
-                this.columns.push({
+                columns.push({
                     type: "action",
                     typeAttributes: { rowActions: this.buildRowActions(listDef) },
                 });
             }
+            this.columns = [...columns];
         }
         // Handle sort data
         const sortFields = [];
         sortableFields.sort(this.compareSortableFields).forEach(function (field) {
             const fieldName = field.name;
-            sortFields.push({name: fieldName, label: field.label, current: false});
+            sortFields.push({ name: fieldName, label: field.label, current: false });
         });
         this.sortFields = sortFields;
         this.sortDirection = listDef.sortDirection ? 'asc' : listDef.defaultSortDirection;
@@ -340,8 +359,8 @@ export default class RecordViewer extends NavigationMixin(LightningElement) {
     compareSortableFields(f1, f2) {
         return f1.label.localeCompare(f2.label);
     }
-    
-    
+
+
     // tiles viewer parameters
     initializeTilesViewer(listDef) {
         this.numberOfTilesPerRow = listDef.numberOfTilesPerRow;
@@ -362,8 +381,8 @@ export default class RecordViewer extends NavigationMixin(LightningElement) {
         return actions;
     }
 
-    initializeTilesViewerField(fieldDef, fieldNameInViewer, listDef) {
-        let fieldTemplate = { nameInViewer: fieldNameInViewer, name: fieldDef.name, label: fieldDef.label };
+    initializeTilesViewerField(fieldDef, urlField, listDef) {
+        let fieldTemplate = { nameInViewer: urlField, name: fieldDef.name, label: fieldDef.label };
         if (fieldDef.tileHeader) {
             if (!this.tileHeaderTemplate)
                 this.tileHeaderTemplate = { hasUrl: false, fields: [] };
@@ -372,11 +391,11 @@ export default class RecordViewer extends NavigationMixin(LightningElement) {
             } else {
                 if (this.isRecordLink(listDef, fieldDef) && this.tileHeaderTemplate.fields.length == 0) {
                     this.tileHeaderTemplate.hasUrl = true;
-                    this.tileHeaderTemplate.urlField = fieldNameInViewer
+                    this.tileHeaderTemplate.urlField = urlField
                 }
                 else if (this.isPreviewLink(listDef, fieldDef) && this.tileHeaderTemplate.fields.length == 0) {
                     this.tileHeaderTemplate.hasUrl = true;
-                    this.tileHeaderTemplate.urlField = fieldNameInViewer;
+                    this.tileHeaderTemplate.urlField = urlField;
                 }
                 this.tileHeaderTemplate.fields.push(fieldTemplate);
             }
@@ -435,11 +454,11 @@ export default class RecordViewer extends NavigationMixin(LightningElement) {
         this.columnWidthsMode = listDef.columnWidthsMode;
     }
 
-    initalizeDatatableField(fieldDef, fieldNameInViewer, listDef) {
+    initalizeDatatableField(fieldDef, urlField, listDef) {
         let column = {
             label: fieldDef.label,
-            fieldName: fieldNameInViewer,
-            editable: false,
+            fieldName: fieldDef.name,
+            editable: fieldDef.editable,
             sortable: fieldDef.sortable,
             wrapText: fieldDef.wrapText,
             hideDefaultActions: false,
@@ -448,53 +467,58 @@ export default class RecordViewer extends NavigationMixin(LightningElement) {
         if (fieldDef.columnWidth) column.initialWidth = fieldDef.columnWidth;
         if (this.isRecordLink(listDef, fieldDef) || this.isPreviewLink(listDef, fieldDef)) {
             // Parameters for url fields
-            // fieldName: fieldName + suffix for URL
-            // typeAttribute.label: name in DB - Displayed as label of the value in the table
+            // urlField: fieldName + suffix for URL
             //
             // In formatRecord, a new field is added for fieldName + suffix for URL with the value of the corresponding url
-            column.type = "url";
+            column.type = "labeledurl";
+            const isLookup = fieldDef.type === 'LOOKUP';
             column.typeAttributes = {
-                label: {
-                    fieldName: fieldDef.name,
+                isLookup: isLookup,
+                required: fieldDef.required,
+                max: fieldDef.length,
+                target: "_self",
+                url: {
+                    fieldName: urlField,
                 },
-                tooltip: {
-                    fieldName: fieldDef.name,
-                },
+                objectName: isLookup ? fieldDef.lookups[0].value : "",
+                titleField: isLookup ? fieldDef.lookups[0].titleField : "",
+                subtitleField: isLookup ? fieldDef.lookups[0].subtitleField : "",
+                objectLabel: isLookup ? fieldDef.lookups[0].label : "",
+                objectIcon: isLookup ? fieldDef.lookups[0].iconName : "",
+                fieldName: fieldDef.name,
+                targetField: fieldDef.quickFiltersName,
+                relatedRecordId: { fieldName: fieldDef.quickFiltersName },
+                recordId: { fieldName: listDef.rowKey },
+                parentTop: this.parentTop,
+                parentHeight: this.parentHeight
             };
-        }  else if (fieldDef.displayType === "URL_LABEL") {
-            column.type = "url";
-            column.fieldName = fieldDef.urlValue;
+        } else if (fieldDef.displayType === "URL_LABEL") {
+            column.type = "labeledurl";
             column.typeAttributes = {
-                label: {
-                    fieldName: fieldDef.name,
-                },
-                tooltip: {
-                    fieldName: fieldDef.name,
+                required: fieldDef.required,
+                max: fieldDef.length,
+                target: "_blank",
+                url: {
+                    fieldName: fieldDef.urlValue,
                 },
             };
         } else if (fieldDef.displayType === "DATETIME") {
-            column.type = "date";
+            column.type = "other";
             column.typeAttributes = {
-                year: "numeric",
-                month: "2-digit",
-                day: "2-digit",
-                hour: "2-digit",
-                minute: "2-digit",
-                timeZone: this.userTimeZone
+                isDateTime: true,
+                required: fieldDef.required
             };
         } else if (fieldDef.displayType === "DATE") {
-            column.type = "date-local";
+            column.type = "other";
             column.typeAttributes = {
-                year: "numeric",
-                month: "2-digit",
-                day: "2-digit",
+                isDate: true,
+                required: fieldDef.required
             };
         } else if (fieldDef.displayType === "TIME") {
-            column.type = "date";
+            column.type = "other";
             column.typeAttributes = {
-                hour: "2-digit",
-                minute: "2-digit",
-                timeZone: "UTC"
+                isTime: true,
+                required: fieldDef.required
             };
         } else if (
             fieldDef.displayType === "DOUBLE" ||
@@ -503,51 +527,82 @@ export default class RecordViewer extends NavigationMixin(LightningElement) {
             fieldDef.displayType === "LONG" ||
             fieldDef.displayType == "NUMBER"
         ) {
-            column.type = "number";
+            column.type = "other";
             column.typeAttributes = {
-                minimumFractionDigits: fieldDef.fractionDigits
+                isNumber: true,
+                required: fieldDef.required,
+                fractionDigits: fieldDef.fractionDigits
             };
         } else if (fieldDef.displayType === "CURRENCY") {
-            column.type = "currency";
+            column.type = "other";
             column.typeAttributes = {
-                currencyCode: this.currencyCode,
-                minimumFractionDigits: fieldDef.fractionDigits
-
+                isCurrency: true,
+                required: fieldDef.required,
+                fractionDigits: fieldDef.fractionDigits,
+                currencyCode: this.currencyCode
             };
         } else if (fieldDef.displayType === "PERCENT") {
-            column.type = "percent";
+            column.type = "other";
             column.typeAttributes = {
-                minimumFractionDigits: fieldDef.fractionDigits,
+                isPercent: true,
+                required: fieldDef.required,
+                fractionDigits: fieldDef.fractionDigits
             };
         } else if (fieldDef.displayType === "BOOLEAN") {
             column.type = "boolean";
         } else if (fieldDef.displayType === "LOCATION") {
             column.type = "location";
-        } else if (fieldDef.displayType === "PHONE") {
-            column.type = "phone";
+        }else if (fieldDef.displayType === "PICKLIST") {
+            column.type = "picklist";
+            column.typeAttributes = {
+                required: fieldDef.required,
+                objectName: listDef.objectName,
+                recordTypeId: listDef.recordTypes.length > 0 ? { fieldName: 'RecordTypeId' } : '012000000000000AAA',
+                fieldName: fieldDef.name,
+                recordId: { fieldName: listDef.rowKey }
+            }
+        }
+        else if (fieldDef.displayType === "PHONE") {
+            column.type = "txt";
+            column.typeAttributes = {
+                isPhone: true,
+                required: fieldDef.required
+            };
         } else if (fieldDef.displayType === "EMAIL") {
-            column.type = "email";
-        } else if (
+            column.type = "txt";
+            column.typeAttributes = {
+                isEmail: true,
+                required: fieldDef.required
+            };
+        }  else if (
             fieldDef.displayType === "ID" ||
             fieldDef.displayType === "REFERENCE" ||
             fieldDef.displayType === "STRING" ||
-            fieldDef.displayType === "TEXTAREA" ||
             fieldDef.displayType === "MULTIPICKLIST" ||
-            fieldDef.displayType === "PICKLIST" ||
-            fieldDef.displayType === "LOOKUP"
+            fieldDef.displayType === "URL"
         ) {
-            column.type = "text";
+            column.type = "txt";
+            column.typeAttributes = {
+                isText: true,
+                required: fieldDef.required
+            };
+        }  else if ( fieldDef.displayType === "TEXTAREA") {
+            column.type = "txt";
+            column.typeAttributes = {
+                isTextArea: true,
+                required: fieldDef.required
+            };
         } else if (fieldDef.displayType === "HTML") {
             column.type = "richtext";
             column.wrapText = false;
             column.hideDefaultActions = true;
-        } else if (fieldDef.displayType === "URL") {
+        }/* else if (fieldDef.displayType === "URL") {
             column.type = "url";
             column.typeAttribute = {
                 target: "_blank",
             };
-        }
-        this.columns.push(column);
+        }*/
+        return column;
     }
 
     isRecordLink(listDef, fieldDef) {
@@ -618,7 +673,7 @@ export default class RecordViewer extends NavigationMixin(LightningElement) {
             if (this.isTable && this.records.length < this.pageSize)
                 this.setPageHeight(records.length);
 
-        } 
+        }
         // Updated record: replace record with updated version
         else {
             for (const record of this.records) {
@@ -649,10 +704,10 @@ export default class RecordViewer extends NavigationMixin(LightningElement) {
                 }
             }
             if (data && data[field]) {
-                if (fieldTransform.percent)
-                    data[field] = data[field] / 100;
+                if (fieldTransform.time)
+                    data[field] = new Date(data[field]).toISOString().substring(11);
                 if (fieldTransform.hyperlink) {
-                    record[fieldTransform.hyperlink.field] = 
+                    record[fieldTransform.hyperlink.field] =
                         fieldTransform.hyperlink.url.replace(
                             this.cidConst,
                             parentData[fieldTransform.hyperlink.idField]
@@ -736,13 +791,15 @@ export default class RecordViewer extends NavigationMixin(LightningElement) {
     // Set page height
     @api setPageHeight(numRecs) {
         const container = this.datatableContainer;
-        // 40 = 32 header + 8 hscroll - For community and desktop need to add the width of the row borders
+        // 40 = 32 header + 12 hscroll - For community and desktop need to add the width of the row borders
         let height =
-            40 +
+            44 +
             numRecs * (this.community ? 37.703 : this.flow ? 29.75 : 29.75) +
             (this.flow ? 0 : numRecs) +
             2;
         container.style.height = height + "px";
+        // Remove edit mode
+        this.draftValues = [];
     }
 
     // A datatable row action has been selected
@@ -827,5 +884,54 @@ export default class RecordViewer extends NavigationMixin(LightningElement) {
         }
         if (this.flow)
             this.rowSelectionChanged();
+    }
+
+    adjustDatatableHeigh(add) {
+        const height = Number(this.datatableContainer.style.height.replace('px', '')) + (add ? 50 : -50);
+        this.datatableContainer.style.height = height + 'px';
+        this.saveBarDisplayed = add;
+    }
+
+    handleCellChange(event) {
+        if (!this.saveBarDisplayed)
+            this.adjustDatatableHeigh(true);
+    }
+
+    handleCellEdited(event) {
+        event.stopPropagation();
+        this.editedCells.set(event.detail.recordId + event.detail.fieldName, 
+            { value: event.detail.value, label: event.detail.label, targetField: event.detail.targetField });
+    }
+
+    handleDatatableCancel() {
+        this.adjustDatatableHeigh(false);
+    }
+
+    handleDatatableSave(event) {
+        // Convert datatable draft values into record objects
+        const records = [];
+        for (let draftValue of event.detail.draftValues) {
+            const value = {};
+            for (const key of Object.keys(draftValue)) {
+                const mapKey = draftValue.Id + key;
+                const cellData = this.editedCells.get(mapKey);
+                // Replace display value returned by custom editor by actual value or set standard values for other fields
+                if (cellData)
+                    value[cellData.targetField ? cellData.targetField : key] = cellData.value ? cellData.value : null;
+                else
+                    value[key] = draftValue[key];
+            }
+            records.push({fields: value});
+        }
+        this.dispatchEvent(new CustomEvent('recordsupdated', { detail: { records: records }}));
+    }
+
+    @api afterDatatableSave(hasErrors, errors) {
+        this.errors = errors;
+        if (!hasErrors) {
+            // Required for hiding Cancel / Save buttons
+            this.draftValues = [];
+            this.adjustDatatableHeigh(false);
+        }
     }
 }

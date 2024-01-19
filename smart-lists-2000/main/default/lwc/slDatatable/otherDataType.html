@@ -1,0 +1,24 @@
+<template>
+    <template lwc:if={typeAttributes.isDate}>
+        <lightning-formatted-date-time value={value} year="numeric" month="2-digit"
+            day="2-digit" time-zone="UTC"></lightning-formatted-date-time>
+    </template>
+    <template lwc:if={typeAttributes.isDateTime}>
+        <lightning-formatted-date-time value={value} year="numeric" month="2-digit" day="2-digit" hour="2-digit"
+            minute="2-digit"></lightning-formatted-date-time>
+    </template>
+    <template lwc:if={typeAttributes.isTime}>
+        <lightning-formatted-time value={value}></lightning-formatted-time>
+    </template>
+    <template lwc:if={typeAttributes.isNumber}>
+        <lightning-formatted-number value={value}
+            minimum-fraction-digits={typeAttributes.fractionDigits}></lightning-formatted-number>
+    </template>
+    <template lwc:if={typeAttributes.isCurrency}>
+        <lightning-formatted-number value={value} format-style="currency" currency-code={typeAttributes.currencyCode}
+            minimum-fraction-digits={typeAttributes.fractionDigits}></lightning-formatted-number>
+    </template>
+    <template lwc:if={typeAttributes.isPercent}>
+        <c-percent-viewer value={value} fraction-digits={typeAttributes.fractionDigits}></c-percent-viewer>
+    </template>
+</template>
