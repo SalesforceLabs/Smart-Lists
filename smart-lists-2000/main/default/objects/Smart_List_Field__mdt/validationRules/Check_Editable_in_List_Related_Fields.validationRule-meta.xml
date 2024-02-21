@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Check_Editable_in_List_Related_Fields</fullName>
+    <active>true</active>
+    <errorConditionFormula>Editable_in_List__c &amp;&amp;(LEN( Field_Name__c ) - LEN ( SUBSTITUTE ( Field_Name__c , &apos;.&apos;, &apos;&apos;))) &gt; 1</errorConditionFormula>
+    <errorDisplayField>Editable_in_List__c</errorDisplayField>
+    <errorMessage>Fields can only be edited if they are on the base object or are related to a parent record of the base object.
+Example on Account: Parent.Parent.Name is not editable because it is on the parent account  of the parent account. Parent.Name is editable</errorMessage>
+</ValidationRule>

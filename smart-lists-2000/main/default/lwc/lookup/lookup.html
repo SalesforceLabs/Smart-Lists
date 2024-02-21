@@ -69,7 +69,7 @@
                                 lwc:if={hasResults}>
                                 <li key={item.result.id} role="presentation" class="slds-listbox__item">
                                     <div class={item.classes} role="option" id={index} aria-label={item.result.title}
-                                        onclick={handleResultClick} data-recordid={item.result.id}>
+                                        onclick={handleResultClick} onmousedown={handleMouseDown} data-recordid={item.result.id}>
                                         <span class="slds-media__figure slds-listbox__option-icon">
                                             <lightning-icon icon-name={item.result.icon} size="small"
                                                 alternative-text="Result item icon"></lightning-icon>

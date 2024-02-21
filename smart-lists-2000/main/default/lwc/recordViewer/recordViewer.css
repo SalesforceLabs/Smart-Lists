@@ -1,3 +1,6 @@
+.sl-datatable-container {
+    position: relative;
+}
 .sl-tile {
     background-color: var(--slds-g-color-neutral-base-95,rgb(243, 243, 243))!important;
     border-bottom-width: var(--lwc-borderWidthThin, 1px);
@@ -8,6 +11,7 @@
 .sl-tile-body {
     padding-right: var(--lwc-varSpacingVerticalSmall, 0.75rem)!important;
     padding-bottom: var(--lwc-varSpacingVerticalSmall, 0.75rem)!important;
+    background-color: var(--slds-g-color-neutral-base-100,rgb(255, 255, 255))!important;
 }
 .sl-viewer-border-top {
     border-top-width: var(--lwc-borderWidthThin, 1px);

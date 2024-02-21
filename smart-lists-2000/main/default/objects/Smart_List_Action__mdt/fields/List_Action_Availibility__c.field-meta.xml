@@ -7,7 +7,7 @@
 - When Records are Selected in the List: the action button is only enabled when users select records in the list. The selected records are passed to the flow
 - When Records are Loaded: the action button is only enabled when records have been loaded in the list. The loaded records are passed to the flow
 - Always: the action button is enabled all the time. The loaded records are passed to the flow</inlineHelpText>
-    <label>List Action Availibility</label>
+    <label>List Action Availability</label>
     <required>false</required>
     <type>Picklist</type>
     <valueSet>

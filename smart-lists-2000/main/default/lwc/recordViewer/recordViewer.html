@@ -4,6 +4,8 @@
             <lightning-spinner alternative-text={labels.labelLoading} size="small" variant="brand"></lightning-spinner>
         </div>
     </template>
+    <c-cell-tooltip value={tooltipValue} type-data={tooltipTypeData} cell-rect={tooltipCellRect} container-rect={tooltipContainerRect} show={showTooltip} class="sl-tooltip slds-hide">
+    </c-cell-tooltip>
     <template lwc:if={isTable}>
         <template lwc:if={initializedContext}>
             <div class="sl-viewer-border-top sl-datatable-container">
@@ -12,12 +14,12 @@
                     hide-table-header={hideTableHeader} show-row-number-column={showRowNumberColumn}
                     row-number-offset={rowNumberStart} selected-rows={selectedRecordsProgrammatic}
                     default-sort-direction={defaultSortDirection} sorted-direction={sortDirection}
-                    sorted-by={_sortField} wrap-text-max-lines={wrapTextMaxLines} onsort={handleSort}
-                    onrowaction={handleDatatableRowAction} onrowselection={handleDatatableRowSelection}
+                    sorted-by={_sortField} wrap-table-header={wrapColumnHeaders} wrap-text-max-lines={wrapMaxLines}
+                    onsort={handleSort} onrowaction={handleDatatableRowAction} onrowselection={handleDatatableRowSelection}
                     load-more-offset="40" enable-infinite-loading={canLoadData} onloadmore={handleLoadMore}
-                    is-loading={isLoading} draft-values={draftValues} onsave={handleDatatableSave}
-                    oncancel={handleDatatableCancel} oncellchange={handleCellChange} oncelledited={handleCellEdited}
-                    errors={errors}>
+                    ontooltip={handleTooltip} ondisplayvalue={handleDisplayValue} is-loading={isLoading} draft-values={draftValues}
+                    onsave={handleDatatableSave} oncancel={handleDatatableCancel} oncellchange={handleCellChange}
+                    oncelledited={handleCellEdited} errors={errors}>
                 </c-sl-datatable>
             </div>
             <template lwc:if={hasRecords}>
@@ -93,82 +95,12 @@
                                         </div>
                                         <div class="slds-grid slds-wrap slds-tile__detail">
                                             <template for:each={tileRecord.fields} for:item="field">
-                                                <dl key={field.label} class={tileColumnsClass}>
-                                                    <dt class="slds-item_label slds-text-color_weak slds-truncate"
-                                                        title={field.label}>{field.label}:</dt>
-                                                    <dd class="slds-item_detail slds-truncate" title={field.value}>
-                                                        <template lwc:if={field.isBoolean}>
-                                                            <lightning-input type="checkbox" label={field.label}
-                                                                checked={field.value} disabled variant="label-hidden">
-                                                            </lightning-input>
-                                                        </template>
-                                                        <template lwc:elseif={field.isDateTime}>
-                                                            <lightning-formatted-date-time value={field.value}
-                                                                year="numeric" month="2-digit" day="2-digit"
-                                                                hour="2-digit" minute="2-digit"
-                                                                time-zone={field.timeZone}>
-                                                            </lightning-formatted-date-time>
-                                                        </template>
-                                                        <template lwc:elseif={field.isDate}>
-                                                            <lightning-formatted-date-time value={field.value}
-                                                                year="numeric" month="2-digit" day="2-digit"
-                                                                time-zone={tileRecord.timeZone}>
-                                                            </lightning-formatted-date-time>
-                                                        </template>
-                                                        <template lwc:elseif={field.isTime}>
-                                                            <lightning-formatted-time
-                                                                value={field.value}></lightning-formatted-time>
-                                                        </template>
-                                                        <template lwc:elseif={field.isNumber}>
-                                                            <lightning-formatted-number value={field.value}
-                                                                minimum-fraction-digits={field.fractionDigits}></lightning-formatted-number>
-                                                        </template>
-                                                        <template lwc:elseif={field.isCurrency}>
-                                                            <lightning-formatted-number value={field.value}
-                                                                minimum-fraction-digits={field.fractionDigits}
-                                                                format-style="currency"
-                                                                currency-code={tileRecord.currencyCode}></lightning-formatted-number>
-                                                        </template>
-                                                        <template lwc:elseif={field.isPercent}>
-                                                            <c-percent-viewer value={field.value}
-                                                                fraction-digits={field.fractionDigits}></c-percent-viewer>
-                                                        </template>
-                                                        <template lwc:elseif={field.isLocation}>
-                                                            <lightning-formatted-location
-                                                                latitude={field.value.latitude}
-                                                                longitude={field.value.longitude}></lightning-formatted-location>
-                                                        </template>
-                                                        <template lwc:elseif={field.isPhone}>
-                                                            <lightning-formatted-phone
-                                                                value={field.value}></lightning-formatted-phone>
-                                                        </template>
-                                                        <template lwc:elseif={field.isHtml}>
-                                                            <lightning-formatted-rich-text
-                                                                value={field.value}></lightning-formatted-rich-text>
-                                                        </template>
-                                                        <template lwc:elseif={field.isEmail}>
-                                                            <lightning-formatted-email value={field.value}
-                                                                hide-icon></lightning-formatted-email>
-                                                        </template>
-                                                        <template lwc:elseif={field.isUrl}>
-                                                            <lightning-formatted-url value={field.value}
-                                                                tooltip={field.value}
-                                                                target="_blank"></lightning-formatted-url>
-                                                        </template>
-                                                        <template lwc:elseif={field.isUrlLabel}>
-                                                            <lightning-formatted-url value={field.urlValue}
-                                                                label={field.value} tooltip={field.value}
-                                                                target="_blank"></lightning-formatted-url>
-                                                        </template>
-                                                        <template lwc:elseif={field.isHyperlink}>
-                                                            <lightning-formatted-url value={field.url}
-                                                                label={field.value} tooltip={field.value}>
-                                                            </lightning-formatted-url>
-                                                        </template>
-                                                        <template lwc:else>
-                                                            <lightning-formatted-text
-                                                                value={field.value}></lightning-formatted-text>
-                                                        </template>
+                                                <dl key={field.label} class={field.class}>
+                                                    <dt class="slds-item_label slds-text-color_weak slds-truncate">{field.label}:</dt>
+                                                    <dd class="slds-item_detail slds-truncate">
+                                                        <c-field-viewer value={field.value} type-data={field.type} url={field.url}
+                                                            field-style={field.fieldStyle} context="tile">
+                                                        </c-field-viewer>
                                                     </dd>
                                                 </dl>
                                             </template>

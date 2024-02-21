@@ -451,29 +451,29 @@ public class SmartListControllerTest {
     }
     
     @isTest
-    static void testGetQuickFilterOperator() {
+    static void testGetFiltersPanelOperator() {
         List<String> rangeDataTypes = new List<String>{'DATE', 'DATETIME', 'TIME', 'CURRENCY', 'DECIMAL', 'DOUBLE', 'INTEGER', 'LONG', 'PERCENT'};
         List<String> equalDataTypes = new List<String>{'BOOLEAN', 'LOOKUP'};
         List<String> textDataTypes = new List<String>{'EMAIL', 'PHONE', 'TEXT', 'TEXTAREA', 'URL'};
         String operator;
         for (String dataType : rangeDataTypes) {
-            operator = SmartListController.getQuickFiltersOperator(dataType, false, true);
+            operator = SmartListController.getFiltersPanelOperator(dataType, false, true);
             System.assertEquals('>=', operator);
-            operator = SmartListController.getQuickFiltersOperator(dataType, false, false);
+            operator = SmartListController.getFiltersPanelOperator(dataType, false, false);
             System.assertEquals('<=', operator);
         }
-        operator = SmartListController.getQuickFiltersOperator('MULTIPICKLIST', false, true);
+        operator = SmartListController.getFiltersPanelOperator('MULTIPICKLIST', false, true);
         System.assertEquals('INCLUDES', operator);
-        operator = SmartListController.getQuickFiltersOperator('PICKLIST', false, true);
+        operator = SmartListController.getFiltersPanelOperator('PICKLIST', false, true);
         System.assertEquals('IN', operator);
         for (String dataType : equalDataTypes) {
-            operator = SmartListController.getQuickFiltersOperator(dataType, false, true);
+            operator = SmartListController.getFiltersPanelOperator(dataType, false, true);
             System.assertEquals('=', operator);
         }
         for (String dataType : textDataTypes) {
-            operator = SmartListController.getQuickFiltersOperator(dataType, false, true);
+            operator = SmartListController.getFiltersPanelOperator(dataType, false, true);
             System.assertEquals('LIKE', operator);
-            operator = SmartListController.getQuickFiltersOperator(dataType, true, true);
+            operator = SmartListController.getFiltersPanelOperator(dataType, true, true);
             System.assertEquals('=', operator);
         }
     }

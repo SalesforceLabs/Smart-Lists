@@ -1,0 +1,77 @@
+<template>
+    <span class="sl-horz"></span>
+    <div class={outputClass} onmouseenter={handleMouseEnter} onmouseleave={handleMouseLeave}>
+        <span lwc:if={iconLeft} class="slds-var-p-right_xx-small sl-icon">
+            <lightning-icon icon-name={iconName} size="x-small">
+            </lightning-icon>
+        </span>
+        <span class={compClass}>
+            <template lwc:if={isBoolean}>
+                <div class="slds-form-element__control sl-view">
+                    <div class="slds-checkbox">
+                        <input type="checkbox" name="options" id="checkbox-unique-id-83" value="checkbox-unique-id-83"
+                            disabled checked={value} />
+                        <label class="slds-checkbox__label" for="checkbox-unique-id-83">
+                            <span class="slds-checkbox_faux sl-checkbox"></span>
+                        </label>
+                    </div>
+                </div>
+            </template>
+            <template lwc:elseif={isCurrency}>
+                <lightning-formatted-number value={value} format-style="currency" currency-code={currencyCode}
+                    minimum-fraction-digits={fractionDigits} class={viewerClass}></lightning-formatted-number>
+            </template>
+            <template lwc:elseif={isDate}>
+                <lightning-formatted-date-time value={value} year="numeric" month="2-digit" day="2-digit"
+                    time-zone="UTC" class={viewerClass}></lightning-formatted-date-time>
+            </template>
+            <template lwc:elseif={isDateTime}>
+                <lightning-formatted-date-time value={value} year="numeric" month="2-digit" day="2-digit" hour="2-digit"
+                    minute="2-digit" class={viewerClass}></lightning-formatted-date-time>
+            </template>
+            <template lwc:elseif={isEmail}>
+                <lightning-formatted-email value={value} hide-icon class={viewerClass}></lightning-formatted-email>
+            </template>
+            <template lwc:elseif={isHtml}>
+                <div class="sl-html">
+                    <lightning-formatted-rich-text value={value} class={viewerClass}></lightning-formatted-rich-text>
+                </div>
+            </template>
+            <template lwc:elseif={isLabelledUrl}>
+                <lightning-formatted-url value={url} label={value} target={target}
+                    class={viewerClass}></lightning-formatted-url>
+            </template>
+            <template lwc:elseif={isLocation}>
+                <lightning-formatted-location latitude={value.latitude} longitude={value.longitude}
+                    class={viewerClass}></lightning-formatted-location>
+            </template>
+            <template lwc:elseif={isNumber}>
+                <lightning-formatted-number value={value} minimum-fraction-digits={fractionDigits}
+                    class={viewerClass}></lightning-formatted-number>
+            </template>
+            <template lwc:elseif={isPercent}>
+                <lightning-formatted-number value={value} format-style="percent"
+                    minimum-fraction-digits={fractionDigits} class={viewerClass}></lightning-formatted-number>
+            </template>
+            <template lwc:elseif={isPhone}>
+                <lightning-formatted-phone value={value} class={viewerClass}></lightning-formatted-phone>
+            </template>
+            <template lwc:elseif={isRichText}>
+                <div class="sl-rich-text">
+                    <lightning-formatted-rich-text value={value}></lightning-formatted-rich-text>
+                </div>
+        </template>
+            <template lwc:elseif={isText}>
+                <lightning-formatted-text value={value} linkify={linkify} class={viewerClass}></lightning-formatted-text>
+            </template>
+            <template lwc:elseif={isTime}>
+                <lightning-formatted-time value={value} class={viewerClass}></lightning-formatted-time>
+            </template>
+        </span>
+        <span lwc:if={iconRight} class="slds-var-p-left_xx-small sl-icon">
+            <lightning-icon icon-name={iconName} size="x-small">
+            </lightning-icon>
+        </span>
+    </div>
+    <span class="sl-vert"></span>
+</template>

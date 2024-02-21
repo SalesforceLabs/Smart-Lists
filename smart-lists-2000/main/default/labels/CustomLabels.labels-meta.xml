@@ -456,6 +456,27 @@
         <value>Refresh</value>
     </labels>
     <labels>
+        <fullName>RequiredInformation</fullName>
+        <language>en_US</language>
+        <protected>false</protected>
+        <shortDescription>Required Information</shortDescription>
+        <value>Required Information</value>
+    </labels>
+    <labels>
+        <fullName>ReviewFieldsErrors</fullName>
+        <language>en_US</language>
+        <protected>false</protected>
+        <shortDescription>ReviewFieldsErrors</shortDescription>
+        <value>Review the following fields</value>
+    </labels>
+    <labels>
+        <fullName>ReviewPageErrors</fullName>
+        <language>en_US</language>
+        <protected>false</protected>
+        <shortDescription>ReviewPageErrors</shortDescription>
+        <value>Review the error(s) on this page</value>
+    </labels>
+    <labels>
         <fullName>SOQLScopeAll</fullName>
         <language>en_US</language>
         <protected>false</protected>
@@ -510,6 +531,13 @@
         <protected>false</protected>
         <shortDescription>SavedChanges</shortDescription>
         <value>Your changes has been saved</value>
+    </labels>
+    <labels>
+        <fullName>Saving</fullName>
+        <language>en_US</language>
+        <protected>false</protected>
+        <shortDescription>Saving</shortDescription>
+        <value>Saving...</value>
     </labels>
     <labels>
         <fullName>SearchBoxLabel</fullName>

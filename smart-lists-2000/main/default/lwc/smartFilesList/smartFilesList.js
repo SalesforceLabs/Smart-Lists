@@ -130,14 +130,12 @@ export default class SmartFilesList2 extends NavigationMixin(LightningElement) {
             const fieldDef = fields[fieldName];
             if (fieldDef.editField) {
                 const editFieldDef = fieldDef;
-                if (editFieldDef.editable) {
-                    const required = editFieldDef.type !== 'BOOLEAN' && (editFieldDef.requiredOnEdit || (!editFieldDef.requiredOnEdit && editFieldDef.dbRequired));
-                    const field = { name: editFieldDef.name, required: required };
-                    chunk.push(field);
-                    if (chunk.length === 2) {
-                        chunks.push(chunk);
-                        chunk = [];
-                    }
+                const required = editFieldDef.displayType !== 'BOOLEAN' && (editFieldDef.requiredOnEdit || (!editFieldDef.requiredOnEdit && editFieldDef.dbRequired));
+                const field = { name: editFieldDef.name, required: required };
+                chunk.push(field);
+                if (chunk.length === 2) {
+                    chunks.push(chunk);
+                    chunk = [];
                 }
             }
         }

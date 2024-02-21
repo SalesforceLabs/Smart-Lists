@@ -3,7 +3,8 @@
     <fullName>URL_Value__c</fullName>
     <externalId>false</externalId>
     <fieldManageability>DeveloperControlled</fieldManageability>
-    <label>URL Value</label>
+    <inlineHelpText>Field returning the URL associated to the URL label returned by Field Name</inlineHelpText>
+    <label>URL with Label: Value</label>
     <length>255</length>
     <required>false</required>
     <type>Text</type>

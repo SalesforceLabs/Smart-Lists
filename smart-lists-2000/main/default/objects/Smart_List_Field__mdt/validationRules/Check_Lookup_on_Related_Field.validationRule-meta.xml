@@ -2,7 +2,7 @@
 <ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
     <fullName>Check_Lookup_on_Related_Field</fullName>
     <active>true</active>
-    <errorConditionFormula>Lookup_in_Quick_Filters__c &amp;&amp; !CONTAINS( Field_Name__c , &apos;.&apos;) &amp;&amp; Field_Name__c != &apos;Owner&apos;</errorConditionFormula>
+    <errorConditionFormula>Lookup_in_Quick_Filters__c &amp;&amp; Field_Name__c != &apos;Owner&apos; &amp;&amp; (LEN( Field_Name__c ) - LEN ( SUBSTITUTE ( Field_Name__c , &apos;.&apos;, &apos;&apos;))) &lt;&gt; 1</errorConditionFormula>
     <errorDisplayField>Lookup_in_Quick_Filters__c</errorDisplayField>
-    <errorMessage>Lookup in Quick Filters is only available for related fields such as Account.Name or for Owner</errorMessage>
+    <errorMessage>Lookup in Quick Filters is only available for related parent fields such as Account.Name or for Owner. It is not available for base fields such as Name or related grand parent fields such as Account.Parent.Name</errorMessage>
 </ValidationRule>

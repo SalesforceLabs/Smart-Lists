@@ -6,9 +6,9 @@
     <inlineHelpText>Maximum display height in pixels of the filters. A scrollbar will be displayed in the Filters Panel if the height of the filters is greater that this value.
 Leave empty if you don&apos;t want to limit the display height of the filters</inlineHelpText>
     <label>Filters Panel Max Height</label>
-    <precision>4</precision>
+    <precision>6</precision>
     <required>false</required>
-    <scale>0</scale>
+    <scale>2</scale>
     <type>Number</type>
     <unique>false</unique>
 </CustomField>

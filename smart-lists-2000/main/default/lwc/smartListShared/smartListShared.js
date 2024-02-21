@@ -169,11 +169,11 @@ export default class SmartListShared extends LightningElement {
         return this.recordViewer.selectedRecordsCount;
     }
 
-    // QUICK FILTERS
-    // Title of the Quick Filters toggle button: dynamic label displayed/not displayed
-    quickFiltersTitle = this.labels.labelShowQuickFilters;
-    // If false, Quick Filters panel can't be closed: displayed all the time
-    canCloseQuickFilters = false;
+    // FILTERS PANEL
+    // Title of the Filters Panel toggle button: dynamic label displayed/not displayed
+    filtersPanelTitle = this.labels.labelShowQuickFilters;
+    // If false, Filters Panel can't be closed: displayed all the time
+    canCloseFiltersPanel = false;
     // Max Height of the filters display window
     filtersMaxHeight;
     // Filters Panel displayed on the left
@@ -193,8 +193,8 @@ export default class SmartListShared extends LightningElement {
     // UI CONTROL
     // Maximum of the viewer
     viewerMaxWidth;
-    // Quick Filters are displayed/Hidden
-    showQuickFilters = false;
+    // Filters Panel state: displayed/Hidden
+    showFiltersPanel = false;
     // Spinner is displayed: initialization and auto-launched flow action execution
     showSpinner = false;
     // List of SOQL scope displayed/hidden
@@ -215,7 +215,7 @@ export default class SmartListShared extends LightningElement {
 
     // STYLING
     get viewerContainerClass() {
-        return this.showQuickFilters && !this.displayQuickFiltersAllTheTime ? "slds-col slds-no-space sl-viewer-container-with-filters" : "slds-col slds-no-space";
+        return this.showFiltersPanel && !this.displayFiltersPanelAllTheTime ? "slds-col slds-no-space sl-viewer-container-with-filters" : "slds-col slds-no-space";
     }
     get articleClass() {
         let cls = "slds-card slds-card_boundary sl-component-container";
@@ -226,7 +226,7 @@ export default class SmartListShared extends LightningElement {
         return this.flow ? cls += " sl-flow-context" : this.community ? cls += " sl-community-context" : cls;
     }
     get filtersPanelDivClass() {
-        return (this.showQuickFilters) ? 'slds-col slds-no-flex' : 'slds-col slds-no-flex slds-hide';
+        return (this.showFiltersPanel) ? 'slds-col slds-no-flex' : 'slds-col slds-no-flex slds-hide';
     }
 
     // GET UI COMPONENTS
@@ -281,7 +281,7 @@ export default class SmartListShared extends LightningElement {
 
     // Initialize: 
     //      - Read list parameters & store parameters; notify parent
-    //      - Initialize Quick Filters 
+    //      - Initialize Filters Panel 
     //      - Prepare data for row/list actions
     initialize() {
         this.showSpinner = true;
@@ -341,20 +341,20 @@ export default class SmartListShared extends LightningElement {
                 this.maxRowSelected = listDef.maxRowSelected;
                 // Add smartListShared properties to listDef which are needed by initialization process
                 listDef.flow = this.flow;
-                this.displayQuickFiltersAllTheTime = listDef.displayQuickFiltersAllTheTime;
+                this.displayFiltersPanelAllTheTime = listDef.displayFiltersPanelAllTheTime;
                 this.rightFilters = listDef.filtersPosition === 'right';
                 this.leftFilters = !this.rightFilters;
                 this.filtersMaxHeight = listDef.filtersMaxHeight;
-                // Build Quick Filters model and initialize Quick Filters values
-                this.filtersPanel.buildFilterModel(listDef.fields, listDef.showSOSLSearchInQuickFilters, listDef.dataSourceType);
+                // Build Filters Panel model and initialize values
+                this.filtersPanel.buildFilterModel(listDef.fields, listDef.showSOSLSearchInFiltersPanel, listDef.dataSourceType);
                 if (this.filtersPanel.hasFilters) {
-                    // Display Quick Filters button when Quick Filters are not displayed all the time
-                    this.canCloseQuickFilters = !listDef.displayQuickFiltersAllTheTime;
-                    // Display Quick Filters if must be displayed all the time
-                    this.showQuickFilters = listDef.displayQuickFiltersAllTheTime;
+                    // Display Filters Panel button when it's not displayed all the time
+                    this.canCloseFiltersPanel = !listDef.displayFiltersPanelAllTheTime;
+                    // Display Filters Panel if it must be displayed all the time
+                    this.showFiltersPanel = listDef.displayFiltersPanelAllTheTime;
                 }
                 else
-                    this.canCloseQuickFilters = false;
+                    this.canCloseFiltersPanel = false;
                 this.showSOSLSearch = (listDef.showSOSLSearchInComponent && this.filtersPanel.hasSearchableFields);
                 // Request initialization data from parent 
                 this.dispatchEvent(
@@ -383,12 +383,14 @@ export default class SmartListShared extends LightningElement {
     isRendered = false;
     // Set the maximum width of the viewer the 1st time the comp is rendered
     renderedCallback() {
-        // Init list max width without Quick Filters and size list according to Quick Filters displayed all the time or not
+        // Add resize listener for resizing the list when the window is resized
         if (!this.isRendered && this.initializedContext) {
             window.addEventListener("resize", this.handleResizeWindow.bind(this));
             this.isRendered = true;
         }
-        this.setListWidth();
+        setTimeout(() => {
+            this.setListWidth();
+        }, "50");
     }
 
     // Adjust the list max width when the window is resized
@@ -402,13 +404,14 @@ export default class SmartListShared extends LightningElement {
         if (componentContainer && componentContainer.offsetWidth > 0) {
             if (!this.borders) {
                 const style = getComputedStyle(componentContainer);
-                this.borders = parseInt(style.borderLeftWidth) || 0;
-                this.borders += parseInt(style.borderRightWidth) || 0;
+                this.borders = parseFloat(style.borderLeftWidth) || 0;
+                this.borders += parseFloat(style.borderRightWidth) || 0;
             }
-            if (this.viewerMaxWidth !== componentContainer.offsetWidth - this.borders) {
-                this.viewerMaxWidth = componentContainer.offsetWidth - this.borders;
+            const rect = componentContainer.getBoundingClientRect();
+            if (this.viewerMaxWidth !== rect.width - this.borders) {
+                this.viewerMaxWidth = rect.width - this.borders;
                 this.viewerPanel.style.width = this.viewerMaxWidth + "px";
-                if (this.displayQuickFiltersAllTheTime !== undefined && !this.displayQuickFiltersAllTheTime)
+                if (this.displayFiltersPanelAllTheTime !== undefined && !this.displayFiltersPanelAllTheTime)
                     this.recordViewer.width = this.viewerMaxWidth;
             }
         }
@@ -505,15 +508,15 @@ export default class SmartListShared extends LightningElement {
         this.loadFirstPage();
     }
 
-    // Show/Hide quick filters panel
-    handleShowQuickFilters() {
-        this.showQuickFilters = !this.showQuickFilters;
-        this.quickFiltersTitle = this.showQuickFilters
+    // Show/Hide Filters Panel
+    handleShowFiltersPanel() {
+        this.showFiltersPanel = !this.showFiltersPanel;
+        this.filtersPanelTitle = this.showFiltersPanel
             ? this.labels.labelHideQuickFilters
             : this.labels.labelShowQuickFilters;
     }
 
-    // Apply filter defined in quick filters panel
+    // Apply filter defined in Filters Panel
     handleApplyFilter(event) {
         this.filterEntriesPanel = event.detail.filterEntries;
         this.filterByFields = event.detail.filterByFields;

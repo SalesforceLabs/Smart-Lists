@@ -1,0 +1,34 @@
+<template>
+    <template lwc:if={isBoolean}>
+        <lightning-input type="checkbox" checked={value} variant="label-hidden" class="sl-editor" onclick={handleCheckboxClick}></lightning-input>
+    </template>
+    <template lwc:elseif={isLookup}>
+        <c-lookup value={lookupValue} objects={lookupObjects} is-datatable-editor="true" required={required}
+            class="sl-editor" onselectionchange={handleLookupChange}>
+        </c-lookup>
+    </template>
+    <template lwc:elseif={isNumber}>
+        <lightning-input type="number" value={value} step="any" required={required} variant="label-hidden"
+            class="sl-editor" onchange={handleInputChange}></lightning-input>
+    </template>
+    <template lwc:elseif={isPercent}>
+        <lightning-input type="number" value={value} step="any" formatter="percent" required={required}
+            variant="label-hidden" class="sl-editor" onchange={handleInputChange}></lightning-input>
+    </template>
+    <template lwc:elseif={isRichText}>
+        <lightning-input-rich-text value={value} required={required} variant="label-hidden"
+        class="sl-editor" onchange={handleInputChange}></lightning-input-rich-text>
+    </template>
+    <template lwc:elseif={isTextArea}>
+        <lightning-textarea value={value} required={required} variant="label-hidden"
+        class="sl-editor" onchange={handleInputChange}></lightning-textarea>
+    </template>
+    <template lwc:elseif={isPicklist}>
+        <lightning-combobox value={comboValue} options={comboOptions}
+            variant="label-hidden" class="sl-editor" onchange={handleComboChange} onmousedown={handleComboMouseDown}></lightning-combobox>
+    </template>
+    <template lwc:else>
+        <lightning-input type={inputType} value={value} required={required} variant="label-hidden"
+            class="sl-editor" onchange={handleInputChange}></lightning-input>
+    </template>
+</template>

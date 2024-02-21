@@ -1,0 +1,22 @@
+.sl-fixed-footer {
+    position: sticky;
+    bottom: 0px;
+    z-index: 400;
+    box-sizing:border-box; 
+}
+.sl-errors-popover{
+    position:absolute;
+    bottom:132px;
+    z-index: 9003;
+}
+.sl-form-legend-desktop {
+    margin: 8px;
+    padding: 8px;
+    margin-bottom: 0px;
+    padding-bottom: 0px;
+    text-align: right;
+    border-radius: 0.25rem;
+}
+.sl-section-align-with-title {
+    padding-left: 1.875rem;   
+}
