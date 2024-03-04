@@ -55,3 +55,109 @@ export function getTypeFromApexDisplayType(displayType) {
             return 'TEXT';
     }
 }
+
+export class Datatype {
+    _type;
+
+    constructor(type) {
+        this._type = type;
+    }
+
+    get type() {
+        return this._type;
+    }
+
+    get isBoolean() {
+        return this._type === FieldTypes.BOOLEAN;
+    }
+    get isCurrency() {
+        return this._type === FieldTypes.CURRENCY;
+    }
+    get isDate() {
+         return this._type === FieldTypes.DATE;
+    }
+    get isDateTime() {
+        return this._type === FieldTypes.DATETIME;
+    
+    }
+    get isEmail() {
+        return this._type === FieldTypes.EMAIL;
+    }
+    get isHtml() {
+        return this._type === FieldTypes.HTML;
+    }
+    get isLabelledUrl() {
+        return this._type === FieldTypes.URL_LABEL;
+    }
+    get isLocation() {
+        return this._type === FieldTypes.LOCATION;
+    }
+    get isLongTextArea() {
+        return this._type === FieldTypes.LONG_TEXTAREA;
+    }
+    get isLookup() {
+        return this._type === FieldTypes.LOOKUP;
+    }
+    get isMultiPicklist() {
+        return this._type === FieldTypes.MULTIPICKLIST;
+    }
+    get isNumber() {
+        return this._type === FieldTypes.NUMBER;
+    }
+    get isPercent() {
+        return this._type === FieldTypes.PERCENT;
+    }
+    get isPhone() {
+        return this._type === FieldTypes.PHONE;
+    }
+    get isPicklist() {
+        return this._type === FieldTypes.PICKLIST;
+    }
+    get isRichText() {
+        return this._type === FieldTypes.RICH_TEXT;
+    }
+    get isText() {
+        return this._type === FieldTypes.TEXT;
+    }
+    get isTextArea() {
+        return this._type === FieldTypes.TEXTAREA;
+    }
+    get isTime() {
+        return this._type === FieldTypes.TIME;
+    }
+    get isUrl() {
+        return this._type === FieldTypes.URL;
+    }
+    get isUrlLabel() {
+        return this._type === FieldTypes.URL_LABEL;
+    }
+
+    get isNumberInputType() {
+        return this.isCurrency || this.isNumber;
+    }
+
+    get isTextAreaTypes() {
+        return this.isLongTextArea || this.isTextArea;
+    }
+    get isNonTextType() {
+        return this.isBoolean || this.isHtml || this.isRichText;
+    }
+
+
+    get inputType() {
+        if (this.isCurrency || this.isNumber || this.isPercent)
+            return "number";
+        else if (this.isDate)
+            return "date";
+        else if (this.isDateTime)
+            return "datetime";
+        else if (this.isEmail)
+            return "email";
+        else if (this.isPhone)
+            return "tel";
+        else if (this.isTime)
+            return "time";
+        else
+            return "text";
+    }
+}

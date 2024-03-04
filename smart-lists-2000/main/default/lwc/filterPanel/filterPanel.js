@@ -26,6 +26,7 @@ import labelNonSearchableFields from "@salesforce/label/c.SOSLSearchNonSearchabl
 
 import {
     getTypeFromApexDisplayType,
+    Datatype,
     FieldTypes
 } from 'c/datatypeUtils';
 
@@ -150,7 +151,7 @@ export default class FilterPanel extends LightningElement {
     }
 
     // Check if global picklist type
-    isPicklist(type) {
+    isPicklistTypes(type) {
         return type === FieldTypes.MULTIPICKLIST || type === FieldTypes.PICKLIST;
     }
 
@@ -175,30 +176,32 @@ export default class FilterPanel extends LightningElement {
         const that = this;
         fpFields.sort(this.compareFilterableFields).forEach(function (field) {
             const type = getTypeFromApexDisplayType(field.filtersType);
+            const datatype = new Datatype(type);
+            const isPicklistTypes = that.isPicklistTypes(type);
             const entry = {
-                fieldName: type === FieldTypes.LOOKUP  || type === FieldTypes.PICKLIST ? field.relatedIdField : field.name,
+                fieldName: datatype.isLookup || datatype.isPicklist ? field.relatedIdField : field.name,
                 fieldLabel: field.label,
                 fieldType: type,
                 filtersPanelOperator1: field.filtersPanelOperator1,
                 filtersPanelOperator2: field.filtersPanelOperator2,
             }
-            if (type === FieldTypes.DATE || type === FieldTypes.DATETIME) {
+            if (datatype.isDate || datatype.isDateTime) {
                 entry.inputType = "date";
                 entry.isRange = true;
                 entry.isNumberRange = false;
-            } else if (type === FieldTypes.TIME) {
+            } else if (datatype.isTime) {
                 entry.inputType = "time";
                 entry.isRange = true;
                 entry.isNumberRange = false;
-            } else if (type === FieldTypes.CURRENCY || type === FieldTypes.NUMBER || type === FieldTypes.PERCENT) {
+            } else if (datatype.isCurrency || datatype.isNumber || datatype.isPercent) {
+                entry.inputType = "number";
                 entry.step = 1 / (10 ** field.fractionDigits);
                 entry.isRange = true;
                 entry.isNumberRange = true;
-            } else if (type === FieldTypes.EMAIL || type === FieldTypes.TEXT || type === FieldTypes.TEXTAREA ||
-                type === FieldTypes.URL) {
+            } else if (datatype.isEmail || datatype.isText || datatype.isText || datatype.isUrl) {
                 entry.inputType = "text";
                 entry.isSingle = true;
-            } else if (that.isPicklist(type)) {
+            } else if (isPicklistTypes) {
                 entry.isPicklist = true;
                 const firstPicklistValues = [];
                 const firstPicklistValueCodes = new Set();
@@ -215,12 +218,12 @@ export default class FilterPanel extends LightningElement {
                 entry.options = [...firstPicklistValues];
                 entry.hasMoreValues = allPicklistValues.length > firstPicklistValues.length;
                 that.picklistsData.set(entry.fieldName, { firstCodes: firstPicklistValueCodes, allValues: allPicklistValues });
-            } else if (type === FieldTypes.PHONE) {
+            } else if (datatype.isPhone) {
                 entry.inputType = "tel";
                 entry.isSingle = true;
-            } else if (type === FieldTypes.BOOLEAN) {
+            } else if (datatype.isBoolean) {
                 entry.isBoolean = true;
-            } else if (type === FieldTypes.LOOKUP) {
+            } else if (datatype.isLookup) {
                 entry.isLookup = true;
                 entry.lookupData = field.lookups;
                 entry.clearClass = "slds-col slds-no-flex slds-var-m-left_xx-small sl-clear-input";
@@ -304,7 +307,7 @@ export default class FilterPanel extends LightningElement {
 
     // DATATYPE MANAGEMENT
     emptyValueForType(type) {
-        return this.isPicklist(type) ? [] : type === FieldTypes.LOOKUP ? {} : "";
+        return this.isPicklistTypes(type) ? [] : type === FieldTypes.LOOKUP ? {} : "";
     }
 
     equalForType(type, value1, value2) {
@@ -315,7 +318,7 @@ export default class FilterPanel extends LightningElement {
                 return true;
             else
                 return false;
-        } else if (this.isPicklist(type)) {
+        } else if (this.isPicklistTypes(type)) {
             const v1str = value1.sort();
             const v2str = value2.sort();
             return v1str.toString() === v2str.toString();
@@ -327,7 +330,7 @@ export default class FilterPanel extends LightningElement {
     emptyForType(type, value) {
         if (type === FieldTypes.LOOKUP)
              return JSON.stringify(value) === '{}';
-        else if (this.isPicklist(type))
+        else if (this.isPicklistTypes(type))
             return value.length === 0;
         else
             return value === "";
@@ -362,7 +365,7 @@ export default class FilterPanel extends LightningElement {
     // Select Picklist Values Modal has been closed
     handleCloseSelectPicklistValues(event) {
         this.showPicklistModal = false;
-        if (event.detail.action == 'apply') {
+        if (event.detail.action == 'apply' && event.detail.selections) {
             this.processValueChange(event.detail.field, event.detail.selections, true);
         }
     }
@@ -482,7 +485,7 @@ export default class FilterPanel extends LightningElement {
         const filter = entry.filter;
         const value = entry.value;
         const comp = this.findComp(filter);
-        if (this.isPicklist(entry.fieldType)) {
+        if (this.isPicklistTypes(entry.fieldType)) {
             const hasMore = this.template.querySelector('[data-hasmorename="' + filter + '"]');
             if (hasMore) {
                 const firstCodes = this.picklistsData.get(filter).firstCodes;
@@ -529,7 +532,7 @@ export default class FilterPanel extends LightningElement {
         // Set new value
         entry.value = value;
         // Update picklist comps after value change
-        if (updateUI && this.isPicklist(entry.fieldType))
+        if (updateUI && this.isPicklistTypes(entry.fieldType))
             this.setFilterValue(entry);
         // Set filter buttons
         if (updateUI)
@@ -619,7 +622,7 @@ export default class FilterPanel extends LightningElement {
             if (entry.value) {
                 if (entry.fieldType === FieldTypes.BOOLEAN)
                     vals.push(entry.value === this.BOOLEAN_CHECKED ? "true" : "false");
-                else if (this.isPicklist(entry.fieldType)) {
+                else if (this.isPicklistTypes(entry.fieldType)) {
                     vals = Array.from(entry.value);
                 } else if (entry.fieldType === FieldTypes.LOOKUP)
                     vals.push(entry.value.id);

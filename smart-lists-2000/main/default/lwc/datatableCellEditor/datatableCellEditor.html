@@ -1,34 +1,48 @@
 <template>
-    <template lwc:if={isBoolean}>
-        <lightning-input type="checkbox" checked={value} variant="label-hidden" class="sl-editor" onclick={handleCheckboxClick}></lightning-input>
+    <template lwc:if={datatype.isBoolean}>
+        <lightning-input type="checkbox" checked={editedValue} class="sl-editor" tabindex={internalTabIndex}
+            onfocus={handleComponentFocus} onblur={handleComponentBlur}
+            onchange={handleCheckboxChange}></lightning-input>
     </template>
-    <template lwc:elseif={isLookup}>
+    <template lwc:elseif={datatype.isLocation}>
+        <lightning-input-location latitude={editedValue.latitude} longitude={editedValue.longitude} required={required}
+            variant="label-hidden" class="sl-editor" data-navigation="enable" onfocus={handleComponentFocus} onblur={handleComponentBlur}
+            onchange={handleInputChange}>
+        </lightning-input-location>
+    </template>
+    <template lwc:elseif={datatype.isLookup}>
         <c-lookup value={lookupValue} objects={lookupObjects} is-datatable-editor="true" required={required}
-            class="sl-editor" onselectionchange={handleLookupChange}>
+            class="sl-editor" data-navigation="enable" onfocus={handleComponentFocus} onblur={handleComponentBlur}
+            onchange={handleComboChange} onselectionchange={handleLookupChange}>
         </c-lookup>
     </template>
-    <template lwc:elseif={isNumber}>
-        <lightning-input type="number" value={value} step="any" required={required} variant="label-hidden"
-            class="sl-editor" onchange={handleInputChange}></lightning-input>
+    <template lwc:elseif={datatype.isNumberInputType}>
+        <lightning-input type="number" value={editedValue} step="any" required={required} variant="label-hidden"
+            class="sl-editor" tabindex={internalTabIndex} onfocus={handleComponentFocus} onblur={handleComponentBlur}
+            onchange={handleInputChange}></lightning-input>
     </template>
-    <template lwc:elseif={isPercent}>
-        <lightning-input type="number" value={value} step="any" formatter="percent" required={required}
-            variant="label-hidden" class="sl-editor" onchange={handleInputChange}></lightning-input>
+    <template lwc:elseif={datatype.isPercent}>
+        <lightning-input type="number" value={editedValue} step="any" formatter="percent" required={required}
+            variant="label-hidden" class="sl-editor" tabindex={internalTabIndex} onfocus={handleComponentFocus}
+            onblur={handleComponentBlur} onchange={handleInputChange}></lightning-input>
     </template>
-    <template lwc:elseif={isRichText}>
-        <lightning-input-rich-text value={value} required={required} variant="label-hidden"
-        class="sl-editor" onchange={handleInputChange}></lightning-input-rich-text>
+    <template lwc:elseif={datatype.isPicklist}>
+        <lightning-combobox value={comboValue} options={comboOptions} variant="label-hidden" class="sl-editor"
+            data-navigation="enable" onfocus={handleComponentFocus} onblur={handleComponentBlur}
+            onchange={handleComboChange}></lightning-combobox>
     </template>
-    <template lwc:elseif={isTextArea}>
-        <lightning-textarea value={value} required={required} variant="label-hidden"
-        class="sl-editor" onchange={handleInputChange}></lightning-textarea>
+    <template lwc:elseif={datatype.isRichText}>
+        <lightning-input-rich-text value={editedValue}  formats={rtaFormats} label-visible="false" class="sl-editor" tabindex={internalTabIndex}
+            onkeyup={handleRTAKeyDown} onchange={handleInputChange}></lightning-input-rich-text>
     </template>
-    <template lwc:elseif={isPicklist}>
-        <lightning-combobox value={comboValue} options={comboOptions}
-            variant="label-hidden" class="sl-editor" onchange={handleComboChange} onmousedown={handleComboMouseDown}></lightning-combobox>
+    <template lwc:elseif={datatype.isTextAreaTypes}>
+        <lightning-textarea value={editedValue} required={required} variant="label-hidden" class="sl-editor"
+            onfocus={handleComponentFocus} onblur={handleComponentBlur}
+            onchange={handleInputChange}></lightning-textarea>
     </template>
     <template lwc:else>
-        <lightning-input type={inputType} value={value} required={required} variant="label-hidden"
-            class="sl-editor" onchange={handleInputChange}></lightning-input>
+        <lightning-input type={datatype.inputType} value={editedValue} required={required} variant="label-hidden"
+            class="sl-editor" tabindex={internalTabIndex} onfocus={handleComponentFocus} onblur={handleComponentBlur}
+            onchange={handleInputChange}></lightning-input>
     </template>
 </template>

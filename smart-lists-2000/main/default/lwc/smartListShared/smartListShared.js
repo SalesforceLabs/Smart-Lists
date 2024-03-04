@@ -192,7 +192,7 @@ export default class SmartListShared extends LightningElement {
 
     // UI CONTROL
     // Maximum of the viewer
-    viewerMaxWidth;
+    viewerMaxWidth = 0;
     // Filters Panel state: displayed/Hidden
     showFiltersPanel = false;
     // Spinner is displayed: initialization and auto-launched flow action execution
@@ -264,19 +264,15 @@ export default class SmartListShared extends LightningElement {
     }
 
     // COMPONENT INITIALIZATION FLOW
-    // - recordViewer send ready notification
+    // - recordViewer send ready notification at the end of connectedCallback
     // - initialize: 
     //      - Perform initialization from list definition
     //      - Notify parent SmartList that parent initialization is needed
     // - parentInitialized: 
     //      - invoked by parent for completing initialization
     //      - initialize record viewer with data provided by parent
-    viewerReady = false;
-    handleViewerReady(event) {
-        if (!this.viewerReady) {
-            this.viewerReady = true;
-            this.initialize();
-        }
+    handleViewerConnected(event) {
+        this.initialize();
     }
 
     // Initialize: 
@@ -347,14 +343,17 @@ export default class SmartListShared extends LightningElement {
                 this.filtersMaxHeight = listDef.filtersMaxHeight;
                 // Build Filters Panel model and initialize values
                 this.filtersPanel.buildFilterModel(listDef.fields, listDef.showSOSLSearchInFiltersPanel, listDef.dataSourceType);
-                if (this.filtersPanel.hasFilters) {
+                this.staticFiltersPanel = this.filtersPanel.hasFilters && listDef.displayFiltersPanelAllTheTime;
+                this.canCloseFiltersPanel = !this.staticFiltersPanel;
+                this.showFiltersPanel = this.staticFiltersPanel;
+                /*if (this.filtersPanel.hasFilters) {
                     // Display Filters Panel button when it's not displayed all the time
                     this.canCloseFiltersPanel = !listDef.displayFiltersPanelAllTheTime;
                     // Display Filters Panel if it must be displayed all the time
                     this.showFiltersPanel = listDef.displayFiltersPanelAllTheTime;
                 }
                 else
-                    this.canCloseFiltersPanel = false;
+                    this.canCloseFiltersPanel = false;*/
                 this.showSOSLSearch = (listDef.showSOSLSearchInComponent && this.filtersPanel.hasSearchableFields);
                 // Request initialization data from parent 
                 this.dispatchEvent(
@@ -388,9 +387,7 @@ export default class SmartListShared extends LightningElement {
             window.addEventListener("resize", this.handleResizeWindow.bind(this));
             this.isRendered = true;
         }
-        setTimeout(() => {
-            this.setListWidth();
-        }, "50");
+        this.setListWidth();
     }
 
     // Adjust the list max width when the window is resized
@@ -410,9 +407,8 @@ export default class SmartListShared extends LightningElement {
             const rect = componentContainer.getBoundingClientRect();
             if (this.viewerMaxWidth !== rect.width - this.borders) {
                 this.viewerMaxWidth = rect.width - this.borders;
-                this.viewerPanel.style.width = this.viewerMaxWidth + "px";
-                if (this.displayFiltersPanelAllTheTime !== undefined && !this.displayFiltersPanelAllTheTime)
-                    this.recordViewer.width = this.viewerMaxWidth;
+                this.viewerPanel.style.width = this.viewerMaxWidth + 'px';
+                this.recordViewer.width = this.viewerMaxWidth;
             }
         }
     }

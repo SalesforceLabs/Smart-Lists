@@ -3,11 +3,12 @@ import labelNoneValue from "@salesforce/label/c.NoneValue";
 import { getPicklistValuesByRecordType } from "lightning/uiObjectInfoApi";
 
 import {
-    FieldTypes
+    Datatype
 } from 'c/datatypeUtils';
 
 export default class DatatableCellEditor extends LightningElement {
     // COMPONENT PROPERTIES
+    @api internalTabIndex;
     @api value;
     _typeData;
     @api get typeData() {
@@ -15,7 +16,7 @@ export default class DatatableCellEditor extends LightningElement {
     }
     set typeData(val) {
         this._typeData = val;
-        this.editType = val.editType;
+        this.datatype = new Datatype(val.editType);
         this.required = val.required;
         this.objectName = val.objectName;
         this.apiName = val.apiName;
@@ -33,6 +34,8 @@ export default class DatatableCellEditor extends LightningElement {
     @api relatedRecordId;
 
     // COMPONENT VARIABLES
+    editedValue;
+    datatype;
     type;
     required;
     // Picklist & Lookup variables
@@ -47,66 +50,46 @@ export default class DatatableCellEditor extends LightningElement {
     subtitleField;
     targetField;
 
-    // Type of lightning-input
-    inputType;
-    // Type of editor
-    isBoolean;
-    isLookup;
-    isNumber;
-    isPercent;
-    isRichText;
-    isTextArea;
-    // Type of control for validity and focus functions
-    controlType;
     // Lookup properties
     lookupObjects = [];
     lookupValue;
     // Picklist properties
     comboOptions;
     comboOptionsMap = new Map();
+    // Rich Text Area properties
+    rtaFormats = [
+        'font',
+        'size',
+        'bold',
+        'italic',
+        'underline',
+        'strike',
+        'list',
+        'indent',
+        'align',
+        'link',
+        'image',
+        'clean',
+        'table',
+        'header',
+        'color',
+    ];
 
     // Initialize the properties for the editor type
     connectedCallback() {
-        if (this.editType === FieldTypes.BOOLEAN) {
-            this.isBoolean = true;
-        } else if (this.editType === FieldTypes.PICKLIST) {
-            this.isPicklist = true;
-        } else if (this.editType === FieldTypes.LOOKUP) {
-            this.isLookup = true;
+        this.editedValue = this.value;
+        if (this.datatype.isLookup) {
             this.lookupObjects = [{
                 value: this.objectName, titleField: this.titleField, subtitleField: this.subtitleField,
                 label: this.objectLabel, iconName: this.objectIcon
             }];
             this.lookupValue = this.relatedRecordId && this.value !== ' '  && this.value ?
                 { title: this.value, id: this.relatedRecordId, icon: this.objectIcon } : {};
-        } else if (this.editType === FieldTypes.NUMBER || this.editType === FieldTypes.CURRENCY) {
-            this.isNumber = true;
-        } else if (this.editType === FieldTypes.PERCENT) {
-            this.isPercent = true;
-        } else if (this.editType === FieldTypes.TEXTAREA || this.editType === FieldTypes.LONG_TEXTAREA) {
-            this.isTextArea = true;
-        } else if (this.editType === FieldTypes.RICH_TEXT) {
-            this.isRichText = true;
-        } else {
-            if (this.editType === FieldTypes.DATE)
-                this.inputType = "date";
-            else if (this.editType === FieldTypes.DATETIME)
-                this.inputType = "datetime";
-            else if (this.editType === FieldTypes.TIME) {
-                this.inputType = "time";
-            }
-            else if (this.editType === FieldTypes.PHONE)
-                this.inputType = "tel";
-            else if (this.editType === FieldTypes.EMAIL)
-                this.inputType = "email";
-            else
-                this.inputType = "text";
         }
     }
 
     // Input functions
     handleInputChange(event) {
-        event.stopPropagation();
         this.value = event.detail.value;
     }
 
@@ -153,7 +136,7 @@ export default class DatatableCellEditor extends LightningElement {
     }
 
     handleComboChange(e) {
-        e.stopPropagation();
+        //e.stopPropagation();
         this.comboValue = e.detail.value;
         this.value = this.comboOptionsMap.get(this.comboValue).label;
         const detail = { value: this.comboValue, label: this.value, fieldName: this.apiName, recordId: this.recordId };
@@ -165,24 +148,36 @@ export default class DatatableCellEditor extends LightningElement {
         }));
     }
 
-    // Prevent close of picklist editor when several values are selected
-    handleComboMouseDown(e) {
-        e.preventDefault();
+    // Checkbox functions
+    handleCheckboxChange(event) {
+        this.value = event.target.checked;
     }
 
-    // Checkbox functions
-    handleCheckboxClick(event) {
-        this.value = event.target.checked;
-        this.template.querySelector(".sl-editor").click();
+    handleRTAKeyDown(event) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
+    // Focus Management
+    handleComponentFocus() {
+        this.dispatchEvent(new CustomEvent('focus'));
+    }
+
+    handleComponentBlur() {
+        this.dispatchEvent(new CustomEvent('blur'));
     }
 
     // Editor functions
     @api get validity() {
-        return this.template.querySelector(".sl-editor").validity;
+        if (this.datatype.isRichText)
+            return { valid: true};
+        else
+            return this.template.querySelector(".sl-editor").validity;
     }
 
     @api showHelpMessageIfInvalid() {
-        this.template.querySelector(".sl-editor").showHelpMessageIfInvalid();
+        if ((!this.datatype.isBoolean && !this.datatype.isRichText)) {
+            this.template.querySelector(".sl-editor").showHelpMessageIfInvalid();
+        }
     }
 
     @api focus() {

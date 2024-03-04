@@ -1,7 +1,7 @@
 import { LightningElement, api } from 'lwc';
 
 import {
-    FieldTypes
+    Datatype
 } from 'c/datatypeUtils';
 
 export default class FieldViewer extends LightningElement {
@@ -9,15 +9,13 @@ export default class FieldViewer extends LightningElement {
     _value;
     @api get value() {
         let val = this._value;
-        if ((this.isTextAreaTypes || this.isLongTextArea) && val && !this.wrapText) {
-            if (!this.isTooltip)
+        if (this.datatype.isTextAreaTypes && val) {
+            if (!this.isTooltip && !this.wrapText)
                 val = val.replace(/\n/g, " ");
             if (val.length > 500)
                 val = val.slice(0, 500) + "...";
-        } else if (this.isPercent && val)
+        } else if (this.datatype.isPercent && val)
             val = val / 100;
-        else if (this.isLocation && !val)
-            val = { latitude: null, longitude: null };
         else if (this.iconPosition === this.IconPositionType.HIDEVALUE) // Hack for icon not updated when no value is displayed
             val = null;
         return val;
@@ -93,10 +91,14 @@ export default class FieldViewer extends LightningElement {
         return !this.isTooltip;
     }
     get compClass() {
-        return this.isTooltip ? "" : "sl-comp";
+        return this.isTooltip ? '' : 'sl-comp';
     }
     get viewerClass() {
-        return this.wrapText ? "sl-viewer sl-viewer-wrap" : "sl-viewer sl-viewer-clip";
+        let cls = 'sl-viewer ';
+        cls += this.wrapText ? ' sl-viewer-wrap' : ' sl-viewer-clip';
+        if (this.datatype.isHtml)
+            cls += ' forceOutputFormulaHtml' + (this.wrapText ? ' slds-hyphenate' : ' slds-truncate');
+        return cls;
     }
     _icon;
     get icon() {
@@ -111,72 +113,33 @@ export default class FieldViewer extends LightningElement {
         return this._viewer;
     }
     get outputClass() {
-        return this.isCell ? "sl-output sl-output-cell" : this.isTooltip ? "sl-output" : "sl-output sl-output-tile slds-hyphenate";
+        return this.isCell ? 'sl-output sl-output-cell' : this.isTooltip ? 'sl-output' : 'sl-output sl-output-tile slds-hyphenate';
     }
     _output;
     get output() {
         if (!this._output)
-            this._output = this.template.querySelector(".sl-output");
+            this._output = this.template.querySelector('.sl-output');
         return this._output;
     }
-    displayType;
+    datatype;
     fractionDigit;
     currencyCode;
     target;
     alignment;
     showTooltip = false;
-    get isBoolean() {
-        return this.displayType === FieldTypes.BOOLEAN;
-    }
-    get isCurrency() {
-        return this.displayType === FieldTypes.CURRENCY;
-    }
-    get isDate() {
-        return this.displayType === FieldTypes.DATE;
-    }
-    get isDateTime() {
-        return this.displayType === FieldTypes.DATETIME;
-    }
+
     get isEmail() {
-        return this.displayType === FieldTypes.EMAIL && !this.isTooltip;
-    }
-    get isHtml() {
-        return this.displayType === FieldTypes.HTML;
+        return this.datatype.isEmail && !this.isTooltip;
     }
     get isLabelledUrl() {
-        return (this.displayType === FieldTypes.URL_LABEL) && this.url && !this.isTooltip;
-    }
-    get isLocation() {
-        return this.displayType === FieldTypes.LOCATION;
-    }
-    get isNumber() {
-        return this.displayType === FieldTypes.NUMBER;
-    }
-    get isPercent() {
-        return this.displayType === FieldTypes.PERCENT;
+        return this.datatype.isLabelledUrl && this.url && !this.isTooltip;
     }
     get isPhone() {
-        return this.displayType === FieldTypes.PHONE && !this.isTooltip;
-    }
-    get isRichText() {
-        return this.displayType === FieldTypes.RICH_TEXT;
-    }
-    get isText() {
-        return this.displayType === FieldTypes.TEXT || this.isTextAreaTypes || this.displayType === FieldTypes.PICKLIST ||
-            this.displayType === FieldTypes.MULTIPICKLIST ||
-            (this.displayType === FieldTypes.URL_LABEL && !this.isLabelledUrl) ||
-            (this.displayType === FieldTypes.EMAIL && !this.isEmail) ||
-            (this.displayType === FieldTypes.PHONE && !this.isPhone);
-    }
-    get isTextAreaTypes() {
-        return this.displayType === FieldTypes.TEXTAREA || this.displayType === FieldTypes.LONG_TEXTAREA;
-    }
-    get isTime() {
-        return this.displayType === FieldTypes.TIME;
+        return this.datatype.isPhone && !this.isTooltip;
     }
     // Can style viewer
     get hasStyle() {
-        return !this.isTooltip && !this.isBoolean && !this.isHtml && !this.isRichText;
+        return !this.isTooltip && !this.isNonTextType;
     }
     // Can display icon
     get hasIcon() {
@@ -208,7 +171,7 @@ export default class FieldViewer extends LightningElement {
 
     // Set types variables from typeData (needed for tooltip instantiated with no value)        
     setTypeData() {
-        this.displayType = this.typeData.displayType;
+        this.datatype = new Datatype(this.typeData.displayType);
         this.fractionDigits = this.typeData.fractionDigits;
         this.currencyCode = this.typeData.currencyCode;
         this.target = this.typeData.target;
@@ -279,7 +242,9 @@ export default class FieldViewer extends LightningElement {
     // Apply style if rendered for the 1st time
     renderedCallback() {
         if (!this.rendered) {
-            if (this.hasStyle && this.fieldStyle)
+            if (this.datatype.isHtml && this.value)
+                this.viewer.innerHTML = this.value;
+            if (!this.isTooltip && this.hasStyle && this.fieldStyle)
                     this.setFieldStyle();
             this.rendered = true;
         }
@@ -287,13 +252,14 @@ export default class FieldViewer extends LightningElement {
 
     // Display tooltip if needed on mouse enter: send event to recordViewer
     handleMouseEnter() {
-        if (!this.isCell || this.showTooltip || (!this.value && this.iconPosition !== this.IconPositionType.HIDEVALUE) || this.isBoolean || this.isHtml || this.isRichText)
+        if (!this.isCell || this.showTooltip ||
+            (!this.value && this.iconPosition !== this.IconPositionType.HIDEVALUE) || this.datatype.isNonTextType)
             return;
         const cellRect = this.hasEllipsis;
         if (cellRect) {
             this.showTooltip = true;
             const detail = {
-                show: true, value: this.iconPosition === this.IconPositionType.HIDEVALUE ? this._value : this.value, typeData: this.typeData, cellRect: cellRect
+                show: true, value: /*this.iconPosition === this.IconPositionType.HIDEVALUE ? this.value :*/ this._value, typeData: this.typeData, cellRect: cellRect
             };
             this.dispatchEvent(new CustomEvent('tooltip', {
                 composed: true,

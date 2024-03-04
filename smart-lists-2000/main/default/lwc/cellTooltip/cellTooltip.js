@@ -21,42 +21,37 @@ export default class CellTooltip extends LightningElement {
     }
 
     renderedCallback() {
-        if (this.show && !this.showing) {
-            // Workaround for large tooltip not yet redrawn when renderedCallback is triggered
-            if ((this.typeData.type === 'TEXT' || this.typeData.type === 'TEXTAREA' || this.typeData.type === 'LONG_TEXTAREA'  || 
-                this.typeData.type === 'EMAIL'  || this.typeData.type === 'URL' || this.typeData.type === 'URL_LABEL') && this.value.length > 50) {
-                setTimeout(() => {
-                    this.setTooltip();
-                }, 150);
-            } else
-                this.setTooltip();
+        if (this.show) {
+            this.setTooltip();
         }
     }
 
     setTooltip() {
         const tooltipRect = this.tooltip.getBoundingClientRect();
-        let deltaY = this.cellRect.top - this.containerRect.top;
+        const cellY = this.cellRect.top - this.containerRect.top;
+        const cellX = this.cellRect.left - this.containerRect.left;
+        const cellWidth = this.cellRect.width;
         let y;
         let x;
         let nubbinTop;
         let nubbinLeft;
-        if (this.cellRect.top + this.cellRect.height + tooltipRect.height + 8 > this.containerRect.bottom) {
-            y = deltaY - tooltipRect.height + 90;
+        if (cellY + this.cellRect.height + tooltipRect.height + 12 > this.containerRect.bottom - this.containerRect.top) {
+            y = cellY - tooltipRect.height - 12; // 12: 4 margin top + 8 nubbin;
             nubbinTop = false;
         } else {
-            y = deltaY + this.cellRect.height + 110;
+            y = cellY + this.cellRect.height + 12;  // 12: 4 margin bottom + 8 nubbin
             nubbinTop = true;
         }
-        if (this.cellRect.left + tooltipRect.width + 20 <= this.containerRect.right) {
-            x = this.cellRect.left - 20;
+        if (cellX + tooltipRect.width <= this.containerRect.right - this.containerRect.left) {
+            x = cellX;
             nubbinLeft = true;
         } else {
-            x = this.cellRect.left + this.cellRect.width - tooltipRect.width - 8;
+            x = Math.min(cellX + cellWidth - tooltipRect.width, this.containerRect.right - this.containerRect.left - tooltipRect.width);
             nubbinLeft = false;
         }
-        this.tooltip.style.top = y + "px";
+        this.tooltip.style.top = y + 'px';
         this.nubbinTop = nubbinTop;
-        this.tooltip.style.left = x + "px";
+        this.tooltip.style.left = x + 'px';
         this.nubbinLeft = nubbinLeft;
     }
 }

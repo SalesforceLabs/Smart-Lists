@@ -24,6 +24,8 @@ export default class RecordViewer extends NavigationMixin(LightningElement) {
     community;
     userTimeZone;
     currencyCode;
+    // Trigger notify smartListShared when comp initialized and rendered
+    mustTriggerReady = false;
 
     // LABELS
     labels = {
@@ -73,23 +75,30 @@ export default class RecordViewer extends NavigationMixin(LightningElement) {
     @api get sortFieldLabel() {
         return this._sortFieldLabel;
     }
+    @api rightFilters;
+    @api showFiltersPanel;
     // Viewer width
-    _viewerWidth;
-    @api get width() {
-        return this._viewerWidth;
+    _staticFiltersPanel;
+    @api get staticFiltersPanel() {
+        return this._staticFiltersPanel;
     }
-    mustSetWidth = false;
+    set staticFiltersPanel(value) {
+        this._staticFiltersPanel = value;
+    }
+    get canSetWidth() {
+        return this.viewer && this.width && typeof this.staticFiltersPanel !== 'undefined'; 
+    }
+    _width;
+    @api get width() {
+        return this._width;
+    }
     set width(value) {
-    if (this._viewerWidth != value) {
-            this._viewerWidth = value;
-            if (!this.viewer) 
-                this.mustSetWidth = true;
-            else
-                this.setWidth();
-        }
+        this._width = value;
+        if (this.canSetWidth)
+            this.setWidth();
     }
     setWidth() {
-        this.viewer.style.width = this._viewerWidth + "px";
+        this.viewer.style.width = this.staticFiltersPanel ? 'calc(' + this.width + 'px - 21rem)' : this.width + 'px';
     }
     setHeight(height) {
         this.viewer.style.height = height + "px";
@@ -294,16 +303,12 @@ export default class RecordViewer extends NavigationMixin(LightningElement) {
         this._filePreviewUrl = decodeURIComponent(
             await this[NavigationMixin.GenerateUrl](pageRef)
         );
-        // Notify smartListShared that the viewer is ready so that the initialization flow can start
-        this.dispatchEvent(new CustomEvent("ready", {}));
+        this.dispatchEvent(new CustomEvent("connected", {}));
     }
 
-    // Set viewer width on first render
     renderedCallback() {
-        if (this.viewer && this.mustSetWidth) {
+        if (this.canSetWidth)
             this.setWidth();
-            this.mustSetWidth = false;
-        }
         if (this.isTable && this.tableHeight)
             this.setHeight(this.tableHeight);
     }
@@ -350,6 +355,9 @@ export default class RecordViewer extends NavigationMixin(LightningElement) {
                         idField: idField,
                         url: url,
                     };
+                } else if (fieldDef.displayType === "LOCATION") {
+                    fieldTransform.valueField = fieldName;
+                    fieldTransform.location = true;
                 } else if (fieldDef.displayType === "TIME") {
                     fieldTransform.valueField = fieldName;
                     fieldTransform.time = true;
@@ -379,6 +387,7 @@ export default class RecordViewer extends NavigationMixin(LightningElement) {
                     type: "action",
                     typeAttributes: { rowActions: this.buildRowActions(listDef) },
                 });
+                this.hasRowActions = true;
             }
             this.columns = [...columns];
         }
@@ -393,6 +402,8 @@ export default class RecordViewer extends NavigationMixin(LightningElement) {
             ? "asc"
             : listDef.defaultSortDirection;
         this.sortField = listDef.defaultSortField;
+        // Notifiy smartListShared that initialized
+        this.mustTriggerReady = true;
     }
 
     // Compare sortable fields
@@ -479,7 +490,7 @@ export default class RecordViewer extends NavigationMixin(LightningElement) {
         let column = {
             label: fieldDef.label,
             fieldName: fieldDef.name,
-            editable: fieldDef.editType === FieldTypes.RICH_TEXT ? false : fieldDef.editable,
+            editable: fieldDef.editable,
             sortable: fieldDef.sortable,
             wrapText: fieldDef.wrap,
             type: "cell",
@@ -488,8 +499,6 @@ export default class RecordViewer extends NavigationMixin(LightningElement) {
             column.cellAttributes = { alignment: fieldDef.fieldAlignment.toLowerCase() }; 
         if (fieldDef.columnWidth) 
             column.initialWidth = fieldDef.columnWidth;
-        if (fieldDef.displayType === FieldTypes.BOOLEAN)
-            fieldDef.required = false;
         column.typeAttributes = this.getFieldTypeData(listDef, fieldDef, urlField);
         return column;
     }
@@ -531,7 +540,12 @@ export default class RecordViewer extends NavigationMixin(LightningElement) {
             viewType = getTypeFromApexDisplayType(fieldDef.displayType);
         const editType = getTypeFromApexDisplayType(fieldDef.editType);
         let fieldData = {};
-        fieldData.type = { displayType: viewType, editType: editType, required: fieldDef.required }
+        // Need to pass required twice 
+        // - in typeAttributes for displaying the red star in the edit panel
+        // - typeAttributes.type for getting it in the component
+        const required = (fieldDef.displayType === FieldTypes.BOOLEAN) ? false : fieldDef.required;
+        fieldData.required = required;
+        fieldData.type = { displayType: viewType, editType: editType, required: required }
         if (fieldDef.fieldAlignment)
             fieldData.type.alignment = fieldDef.fieldAlignment.toLowerCase();
         if (viewType === FieldTypes.NUMBER || viewType === FieldTypes.PERCENT)
@@ -668,7 +682,9 @@ export default class RecordViewer extends NavigationMixin(LightningElement) {
                     record[fieldTransform.valueField] = data[field];
                 }
             }
-            if (data && data[field]) {
+            if (data && fieldTransform.location && !data[field])
+                data[field] = { latitude: '', longitude: '' };
+            else if (data && data[field]) {
                 if (fieldTransform.time)
                     data[field] = new Date(data[field]).toISOString().substring(11);
                 if (fieldTransform.hyperlink) {
@@ -747,12 +763,34 @@ export default class RecordViewer extends NavigationMixin(LightningElement) {
     // Set page height: used for enabling y scrolling in the datatable
     @api setPageHeight(numRecs) {
         const container = this.datatableContainer;
-        // 40 = 32 header + 12 hscroll - For community and desktop need to add the width of the row borders
-        let height =
-            44 +
-            numRecs * (this.community ? 37.703 : this.flow ? 29.75 : 29.75) +
-            (this.flow ? 0 : numRecs) +
-            2;
+        const style = getComputedStyle(container);
+        const fontSize = parseFloat(style.getPropertyValue('font-size'));
+        const lineHeight = parseFloat(style.getPropertyValue('line-height'));
+        const rem =  fontSize / .8125; // container font size: .8125 of default font size
+        let rowHeight;
+        let padding = this.flow ? 1: this.community ? 1 : .5;
+        if (this.hasRowActions) {
+            // Button:
+            // - web client 
+            //    - content:  lineHeight
+            //    - border top + border bottom : 1px x 2
+            // - other:  rem * 1.5  (x-small button)
+            // Padding top + padding bottom = .25/.5rem x 2
+            if (this.flow || this.community)
+                rowHeight =  (rem  * 1.25) + (padding * rem);
+            else
+                rowHeight = lineHeight + 2 + (padding * rem);
+        } else {
+            // Text = lineHeight
+            // Padding top + padding bottom = .25/.5rem x 2
+            rowHeight = lineHeight + (padding * rem);
+        }
+        // rowHeight
+        // - height of the rows: numRecs * rowHeight
+        // - 1px of top border for all rows but the 1st one: (numRecs - 1)
+        // - 40px: header height (max-height)
+        // - 1rem: hscrollheight
+        let height = (numRecs * rowHeight) + (numRecs - 1) + 40 + rem;
         container.style.height = height + "px";
         // Remove edit mode
         this.draftValues = [];
@@ -958,6 +996,11 @@ export default class RecordViewer extends NavigationMixin(LightningElement) {
             this.tooltipValue = data.value;
             this.tooltipTypeData = data.typeData;
             this.tooltipCellRect = event.detail.cellRect;
+            if (this.showFiltersPanel && !this.rightFilters) {
+                const fontSize = parseFloat(getComputedStyle(this.datatableContainer).getPropertyValue('font-size')) / .8125;
+                const filtersPanelsWidth = fontSize * 21; // 21 rem
+                this.tooltipCellRect.left = this.tooltipCellRect.left + filtersPanelsWidth ;
+            }
             this.tooltipContainerRect = this.isTable ?
                 this.datatableContainer.getBoundingClientRect() : this.tilesBody.getBoundingClientRect();
             this.showTooltip = true;

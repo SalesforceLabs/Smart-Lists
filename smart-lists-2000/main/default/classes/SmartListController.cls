@@ -1519,7 +1519,7 @@ global with sharing class SmartListController {
         String whereClause = objectName == 'Queue' ? ' WHERE Type = \'Queue\' ' : '';
         String orderBy = ' ORDER BY ' + titleField + (String.isEmpty(subtitleField) ? '' : ', ' + subtitleField);
         String query = 'FIND {*' + searchTerm + '*} RETURNING ' + soslObject  + ' (Id, ' + titleField + (String.isEmpty(subtitleField) ? '' : ', ' + subtitleField) + whereClause + orderBy + ' LIMIT 5)';
-        //System.debug(query);
+        System.debug(query);
         List<List<SObject>> searchResults = Search.query(query);
         // Prepare results
         List<LookupSearchResult> results = new List<LookupSearchResult>();

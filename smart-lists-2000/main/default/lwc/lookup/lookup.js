@@ -59,6 +59,11 @@ export default class Lookup extends LightningElement {
     showObjectsSelector = false;
     objectSelectorDescriptiveText = '';
     placeholder = '';
+    // Error
+    error = '';
+    get hasError() {
+        return this.error.length > 0;
+    }
     // PRIVATE PROPERTIES
     _hasFocus = false;
     _isDirty = false;
@@ -80,7 +85,7 @@ export default class Lookup extends LightningElement {
     renderedCallback() {
         if (!this.isListboxOpen && this.parentTop) {
             const containerRect = this.template.querySelector('.sl-container').getBoundingClientRect();
-            const listbox = this.template.querySelector('.sl_listbox');
+            const listbox = this.template.querySelector('.sl-listbox');
             const listboxRect = listbox.getBoundingClientRect();
             const parentHeight = this.parentTop + this.parentHeight;
             if (listboxRect.height >= containerRect.height &&
@@ -214,8 +219,10 @@ export default class Lookup extends LightningElement {
         if (this.hasSelection())
             this._hasFocus = false;
         // If selection was changed by user, notify parent components
-        if (isUserInteraction)
+        if (isUserInteraction) {
+            this.showHelpMessageIfInvalid();
             this.dispatchEvent(new CustomEvent('selectionchange', { detail: this._value }));
+        }
     }
 
     // EVENT HANDLING
@@ -287,7 +294,7 @@ export default class Lookup extends LightningElement {
 
     handleFocus() {
         // Prevent action if selection is not allowed
-       if (!this.isSelectionAllowed()) {
+        if (!this.isSelectionAllowed()) {
             return;
         }
         // Get default results if needed
@@ -295,6 +302,7 @@ export default class Lookup extends LightningElement {
             this.getDefaultResults();
         this._hasFocus = true;
         this._focusedResultIndex = null;
+        this.dispatchEvent(new CustomEvent('focus'));
     }
 
     handleBlur() {
@@ -303,6 +311,7 @@ export default class Lookup extends LightningElement {
             return;
         }
         this._hasFocus = false;
+        this.dispatchEvent(new CustomEvent('blur'));
     }
 
     handleClearSelection() {
@@ -328,9 +337,13 @@ export default class Lookup extends LightningElement {
     }
 
     get getFormElementClass() {
-        return this.variant === VARIANT_LABEL_INLINE
-            ? 'slds-form-element slds-form-element_horizontal'
-            : 'slds-form-element';
+        let cls = 'slds-form-element';
+        if (this.variant === VARIANT_LABEL_INLINE)
+            cls += ' slds-form-element_horizontal';
+        if (this.hasError)
+            cls += ' slds-has-error';
+        return cls;
+
     }
 
     get getLabelClass() {
@@ -356,9 +369,9 @@ export default class Lookup extends LightningElement {
         if (this._hasFocus && this.hasResults) {
             css += 'slds-has-focus ';
         }
-        if (this._isDirty && this.required && !this.hasSelection()) {
+        /*f (this._isDirty && this.required && !this.hasSelection()) {
             css += 'has-custom-error ';
-        }
+        }*/
         css += 'slds-combobox__input-value ' + (this.hasSelection() ? 'has-custom-border' : '');
         return css;
     }
@@ -400,7 +413,7 @@ export default class Lookup extends LightningElement {
 
     get getListboxClass() {
         return (
-            'sl_listbox slds-dropdown ' +
+            'sl-listbox slds-dropdown ' +
             (this.scrollAfterNItems ? `slds-dropdown_length-with-icon-${this.scrollAfterNItems} ` : '') +
             'slds-dropdown_fluid'
         );
@@ -444,13 +457,56 @@ export default class Lookup extends LightningElement {
             });
     }
 
-    // 
+    // VALIDITY
+    /**
+ * Represents the validity states that an element can be in, with respect to constraint validation.
+ * @type {object}
+ */
     @api get validity() {
-        return this.template.querySelector('input').validity;
+        if (this.required && !this.hasSelection())
+            return { invalid: true, valueMissing: true };
+        else
+            return { valid: true };
     }
 
+    /**
+     * Returns the valid attribute value (Boolean) on the ValidityState object.
+     * @returns {boolean} Indicates whether the combobox has any validity errors.
+     */
+    @api checkValidity() {
+        console.log('checkValidity ' + JSON.stringify(this.validity));
+        const isValid = this.validity.valid === true;
+        /*if (!isValid) {
+            if (this.inputComponent) {
+                this.inputComponent.dispatchEvent(
+                    new CustomEvent('invalid', { cancellable: true })
+                );
+            }
+        }*/
+        return isValid;
+    }
+
+    /**
+     * Displays the error messages and returns false if the input is invalid.
+     * If the input is valid, reportValidity() clears displayed error messages and returns true.
+     * @returns {boolean} - The validity status of the combobox.
+     */
+    @api reportValidity() {
+        const valid = this.checkValidity();
+        console.log('reportValidity ' + JSON.stringify(valid) + ' ' + JSON.stringify(this.validity));
+        if (valid)
+            this.error = '';
+        else if (!valid && this.validity.valueMissing)
+            this.error = 'Complete this field.';
+        console.log('reportValidity ' + this.error);
+        return valid;
+    }
+
+    /**
+     * Shows the help message if the combobox is in an invalid state.
+     */
     @api showHelpMessageIfInvalid() {
-        this.template.querySelector('input').showHelpMessageIfInvalid();
+        this.reportValidity();
     }
 
     @api focus() {
