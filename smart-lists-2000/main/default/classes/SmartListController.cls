@@ -778,11 +778,34 @@ global with sharing class SmartListController {
                 }
                 result.dontCheckFileExtension = FeatureManagement.checkPermission('SmartFilesList_Don_t_check_file_extension');
             }
+           // User Custom Permissions are not accessible with FeatureManagement.checkPermission from Package
+            // Retrieve user permissions with SOQL
+            List<String> permNames = new List<String>();
+            for (Smart_List_Action__mdt sla : getListActions(sld.Id)) {
+                if (sla.Custom_Permission__c != null)
+                permNames.add(sla.Custom_Permission__c);
+            }
+            Set<String> seas = new Set<String>();
+            if (permNames.size() > 0) {
+                // Put custom permission ids and name in map for check on permission name
+                Map<Id, String> permsMap = new Map<Id, String>();
+                for (CustomPermission cp : [SELECT Id, DeveloperName FROM CustomPermission WHERE DeveloperName IN :permNames]) {
+                    permsMap.put(cp.id, cp.DeveloperName);
+                }
+                // Retrieve user access for custom permissions and populate a result set of permission names assigned to user
+                for (SetupEntityAccess sea : [SELECT ParentId, SetupEntityId FROM SetupEntityAccess
+                        WHERE ParentId IN (SELECT PermissionSetId
+                                            FROM PermissionSetAssignment
+                                            WHERE AssigneeId = :UserInfo.getUserId() AND IsActive = true)
+                            AND SetupEntityId IN :permsMap.keySet()]) {
+                    seas.add(permsMap.get(sea.SetupEntityId));
+                }
+            }
             // Build list of list actions. If action permitted based on Custom Permission, check if it's available to running user
             for (Smart_List_Action__mdt sla : getListActions(sld.Id)) {
                 Boolean canAdd = true;
                 if (sla.Custom_Permission__c != null)
-                    canAdd = FeatureManagement.checkPermission(sla.Custom_Permission__c);
+                    canAdd = seas.contains(sla.Custom_Permission__c);
                 if (canAdd && sla.type__c == 'List Action')
                     result.customListActions.add(new ListAction(sla));
                 else if (canAdd && sla.type__c == 'Row Action')
