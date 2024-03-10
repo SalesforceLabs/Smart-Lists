@@ -91,14 +91,33 @@ export default class FieldViewer extends LightningElement {
         return !this.isTooltip;
     }
     get compClass() {
-        return this.isTooltip ? '' : 'sl-comp';
+        if (this.isTooltip)
+            return '';
+        let cls = 'sl-comp';
+        if (this.wrapText) {
+            cls += ' slds-hyphenate';
+            if (this.wrapMaxLines)
+                cls += ' slds-line-clamp sl-comp-max';
+            else
+                cls += ' sl-comp-nomax';
+        }
+        else
+            cls += ' slds-truncate';
+        if (this.hasExtraPadding)
+            cls += ' sl-comp-extra-padding';
+        return cls;
     }
     get viewerClass() {
         let cls = 'sl-viewer ';
-        cls += this.wrapText ? ' sl-viewer-wrap' : ' sl-viewer-clip';
         if (this.datatype.isHtml)
             cls += ' forceOutputFormulaHtml' + (this.wrapText ? ' slds-hyphenate' : ' slds-truncate');
         return cls;
+    }
+    _comp;
+    get comp() {
+        if (!this._comp)
+        this._comp = this.template.querySelector('.sl-comp');
+        return this._comp;
     }
     _icon;
     get icon() {
@@ -152,17 +171,17 @@ export default class FieldViewer extends LightningElement {
         return this.hasIcon && this.iconPosition === this.IconPositionType.RIGHT;
     }
 
-    @api get hasEllipsis() {
-        const horz = this.template.querySelector('.sl-horz').getBoundingClientRect();
-        const vert = this.template.querySelector('.sl-vert').getBoundingClientRect();
-        const comp = this.iconPosition === this.IconPositionType.HIDEVALUE ? this.icon : this.viewer;
-        const compRect = comp.getBoundingClientRect();
-        if (this.iconPosition === this.IconPositionType.HIDEVALUE || compRect.width > horz.width || compRect.height > vert.height) {
+    @api get mustShowTooltip() {
+        const compRect = this.comp.getBoundingClientRect();
+        const value = this.iconPosition === this.IconPositionType.HIDEVALUE ? this.icon : this.viewer;
+        const valueRect = value.getBoundingClientRect();
+        if (this.iconPosition === this.IconPositionType.HIDEVALUE || valueRect.width > compRect.width || 
+                valueRect.height > compRect.height) {
             const rect = {};
-            rect.left = compRect.left;
-            rect.top = compRect.top;
-            rect.width = horz.width;
-            rect.height = vert.height;
+            rect.left = valueRect.left;
+            rect.top = valueRect.top;
+            rect.width = compRect.width;
+            rect.height = compRect.height;
             return rect;
         }
         else
@@ -176,6 +195,8 @@ export default class FieldViewer extends LightningElement {
         this.currencyCode = this.typeData.currencyCode;
         this.target = this.typeData.target;
         this.alignment = this.typeData.alignment;
+        this.wrapMaxLines = this.typeData.wrapMaxLines;
+        this.hasExtraPadding = this.typeData.hasExtraPadding;
     }
 
     // Parse dynamic style
@@ -209,19 +230,19 @@ export default class FieldViewer extends LightningElement {
         const v = this.viewer;
         if (this.textColor) {
             v.style.color = this.textColor;
-            v.style.setProperty("--lwc-brandTextLink", this.textColor);
-            v.style.setProperty("--lwc-brandTextLinkActive", this.textColor);
-            v.style.setProperty("--lwc-colorTextLinkActive", this.textColor);
-            v.style.setProperty("--slds-g-link-color-focus", this.textColor);
+            v.style.setProperty('--lwc-brandTextLink', this.textColor);
+            v.style.setProperty('--lwc-brandTextLinkActive', this.textColor);
+            v.style.setProperty('--lwc-colorTextLinkActive', this.textColor);
+            v.style.setProperty('--slds-g-link-color-focus', this.textColor);
         }
         if (this.focusedLinkColor) {
-            v.style.setProperty("--lwc-brandTextLinkActive", this.focusedLinkColor);
-            v.style.setProperty("--lwc-colorTextLinkActive", this.focusedLinkColor);
-            v.style.setProperty("--slds-g-link-color-focus", this.focusedLinkColor);
+            v.style.setProperty('--lwc-brandTextLinkActive', this.focusedLinkColor);
+            v.style.setProperty('--lwc-colorTextLinkActive', this.focusedLinkColor);
+            v.style.setProperty('--slds-g-link-color-focus', this.focusedLinkColor);
         }
         if (this.iconColor) {
-            o.style.setProperty("--slds-c-icon-color-foreground", this.iconColor);
-            o.style.setProperty("--slds-c-icon-color-foreground-default", this.iconColor);
+            o.style.setProperty('--slds-c-icon-color-foreground', this.iconColor);
+            o.style.setProperty('--slds-c-icon-color-foreground-default', this.iconColor);
         }
     }
 
@@ -242,6 +263,10 @@ export default class FieldViewer extends LightningElement {
     // Apply style if rendered for the 1st time
     renderedCallback() {
         if (!this.rendered) {
+            if (this.isCell && !this.datatype.isHtml) {
+                if (this.wrapMaxLines)
+                    this.comp.style.setProperty('--lwc-lineClamp', this.wrapMaxLines);
+            }
             if (this.datatype.isHtml && this.value)
                 this.viewer.innerHTML = this.value;
             if (!this.isTooltip && this.hasStyle && this.fieldStyle)
@@ -255,7 +280,7 @@ export default class FieldViewer extends LightningElement {
         if (!this.isCell || this.showTooltip ||
             (!this.value && this.iconPosition !== this.IconPositionType.HIDEVALUE) || this.datatype.isNonTextType)
             return;
-        const cellRect = this.hasEllipsis;
+        const cellRect = this.mustShowTooltip;
         if (cellRect) {
             this.showTooltip = true;
             const detail = {

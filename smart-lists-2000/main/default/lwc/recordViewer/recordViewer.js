@@ -103,6 +103,7 @@ export default class RecordViewer extends NavigationMixin(LightningElement) {
     setHeight(height) {
         this.viewer.style.height = height + "px";
     }
+    @api scrollLeft = 0;
 
     // DATATABLE DATA
     columns = [];
@@ -331,6 +332,8 @@ export default class RecordViewer extends NavigationMixin(LightningElement) {
         const columns = [];
         const sortableFields = [];
         const isApex = listDef.dataSourceType.startsWith("Apex");
+        const keys = Object.keys(listDef.fields);
+        let lastFieldName = keys[keys.length-1];
         for (const fieldName of Object.getOwnPropertyNames(listDef.fields)) {
             const fieldDef = listDef.fields[fieldName];
             let fieldTransform = {};
@@ -376,7 +379,7 @@ export default class RecordViewer extends NavigationMixin(LightningElement) {
                     sortableFields.push({ name: fieldName, label: fieldDef.label });
                 if (this.isTable)
                     columns.push(
-                        this.initalizeDatatableField(fieldDef, urlField, listDef)
+                        this.initalizeDatatableField(fieldDef, urlField, listDef, (lastFieldName === fieldName))
                     );
                 else this.initializeTilesViewerField(fieldDef, urlField, listDef);
             }
@@ -486,7 +489,7 @@ export default class RecordViewer extends NavigationMixin(LightningElement) {
     }
 
     // Create datatable fields
-    initalizeDatatableField(fieldDef, urlField, listDef) {
+    initalizeDatatableField(fieldDef, urlField, listDef, isLastField) {
         let column = {
             label: fieldDef.label,
             fieldName: fieldDef.name,
@@ -500,6 +503,8 @@ export default class RecordViewer extends NavigationMixin(LightningElement) {
         if (fieldDef.columnWidth) 
             column.initialWidth = fieldDef.columnWidth;
         column.typeAttributes = this.getFieldTypeData(listDef, fieldDef, urlField);
+        column.typeAttributes.type.wrapMaxLines = listDef.wrapMaxLines;
+        column.typeAttributes.type.hasExtraPadding = isLastField && listDef.rowActions.length === 0;
         return column;
     }
 
@@ -995,14 +1000,17 @@ export default class RecordViewer extends NavigationMixin(LightningElement) {
             const data = event.detail;
             this.tooltipValue = data.value;
             this.tooltipTypeData = data.typeData;
-            this.tooltipCellRect = event.detail.cellRect;
+            const tooltipContainerRect = this.isTable ?
+                this.datatableContainer.getBoundingClientRect() : this.tilesBody.getBoundingClientRect();
+            this.tooltipContainerRect = {left: tooltipContainerRect.left, right: tooltipContainerRect.right, top: tooltipContainerRect.top,
+                bottom: tooltipContainerRect.bottom, width: tooltipContainerRect.width, heigh: tooltipContainerRect.width };
+            this.tooltipCellRect = {...event.detail.cellRect};
+            this.tooltipCellRect.left -= this.scrollLeft;
             if (this.showFiltersPanel && !this.rightFilters) {
                 const fontSize = parseFloat(getComputedStyle(this.datatableContainer).getPropertyValue('font-size')) / .8125;
                 const filtersPanelsWidth = fontSize * 21; // 21 rem
-                this.tooltipCellRect.left = this.tooltipCellRect.left + filtersPanelsWidth ;
+                this.tooltipCellRect.left = this.tooltipCellRect.left + filtersPanelsWidth;
             }
-            this.tooltipContainerRect = this.isTable ?
-                this.datatableContainer.getBoundingClientRect() : this.tilesBody.getBoundingClientRect();
             this.showTooltip = true;
             this.tooltip.classList.remove("slds-hide");
         } else {

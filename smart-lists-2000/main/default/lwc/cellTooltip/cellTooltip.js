@@ -46,7 +46,7 @@ export default class CellTooltip extends LightningElement {
             x = cellX;
             nubbinLeft = true;
         } else {
-            x = Math.min(cellX + cellWidth - tooltipRect.width, this.containerRect.right - this.containerRect.left - tooltipRect.width);
+            x = Math.min(cellX + cellWidth - tooltipRect.width, this.containerRect.right - tooltipRect.width);
             nubbinLeft = false;
         }
         this.tooltip.style.top = y + 'px';

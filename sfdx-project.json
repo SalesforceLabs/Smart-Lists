@@ -4,9 +4,9 @@
       "path": "smart-lists-2000",
       "default": true,
       "package": "SmartLists",
-      "versionName": "Spring 24 - 3.4.1.1",
-      "versionNumber": "3.4.2.0",
-      "ancestorVersion": "3.4.1"
+      "versionName": "Spring 24 - 3.4.3.0",
+      "versionNumber": "3.4.3.0",
+      "ancestorVersion": "3.4.2"
     }
   ],
   "name": "sflabs",
@@ -32,6 +32,7 @@
     "SmartLists@3.3.1-1": "04t8b000000qWZwAAM",
     "SmartLists@3.4.0": "04t8b000000qWjtAAE",
     "SmartLists@3.4.1": "04t8b000000qWkIAAU",
-    "SmartLists@3.4.2": "04t8b000000qWkNAAU"
+    "SmartLists@3.4.2": "04t8b000000qWkNAAU",
+    "SmartLists@3.4.3": "04t8b000000qWkSAAU"
   }
 }

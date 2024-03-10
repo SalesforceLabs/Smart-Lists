@@ -129,8 +129,9 @@
                         </c-filter-panel>
                     </div>
                 </template>
-                <div class={viewerContainerClass}>
-                    <c-record-viewer row-key={rowKey} static-filters-panel={staticFiltersPanel} right-filters={rightFilters} show-filters-panel={showFiltersPanel} onviewersort={handleSortUpdate} onconnected={handleViewerConnected}
+                <div class={viewerContainerClass} onscroll={handleViewerScroll}>
+                    <c-record-viewer row-key={rowKey} static-filters-panel={staticFiltersPanel} right-filters={rightFilters} show-filters-panel={showFiltersPanel} 
+                        onviewersort={handleSortUpdate} onconnected={handleViewerConnected}
                         onrowaction={handleRowAction} onloadmore={handleLoadMore} onloadall={handleLoadAll} onrecordsupdated={handleRecordsUpdated}
                         is-loading={isLoading} initialized-context={initializedContext}>
                     </c-record-viewer>

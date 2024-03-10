@@ -242,6 +242,12 @@ export default class SmartListShared extends LightningElement {
             this._viewerPanel = this.template.querySelector(".sl-viewer-panel");
         return this._viewerPanel;
     }
+    _viewerContainer;
+    get viewerContainer() {
+        if (!this._viewerContainer)
+            this._viewerContainer = this.template.querySelector(".sl-viewer-container-with-filters");
+        return this._viewerContainer;
+    }
     _recordViewer;
     @api get recordViewer() {
         if (!this._recordViewer)
@@ -687,6 +693,11 @@ export default class SmartListShared extends LightningElement {
         if (!hasErrors)
             this.displaySuccess(null, this.labels.labelSavedChanges);
         this.showSpinner = false;
+    }
+
+    // Handle scroll of viewer container: send the horz scroll position to recordViewer for displaying tooltips 
+    handleViewerScroll(event) {
+        this.recordViewer.scrollLeft = this.viewerContainer.scrollLeft;
     }
 
     // Refresh a record from the database
