@@ -138,6 +138,7 @@ global with sharing class SmartListController {
      */
     private static String getObjectIcon(String objectName) {
         String iconName = 'standard:default';
+        // Query in System Mode on setup object - No possible SQL injection -> filter is based on data retrieved in the controller
         for (TabDefinition td : [SELECT IsCustom, (SELECT Url FROM Icons WHERE ContentType LIKE 'image/svg%') FROM TabDefinition WHERE SobjectName = :objectName]) {
             if (td.Icons.size() > 0) {
                 String iconCategory = td.Icons.get(0).Url.contains('custom/') ? 'custom' : 'standard';
@@ -679,6 +680,7 @@ global with sharing class SmartListController {
     */ 
     public static Smart_List_Definition__mdt[] getListDefinition(String listName) { 
         if ( listDefinition == null )
+            // Query on system object in System Mode - no possible SQL injection, filter based on data from the AppBuilder, results never sent to the UI
             return [SELECT Id, 	SLDS2__c, Data_Source_Type__c, Data_Provider_Class__c, Default_Sort_Direction__c, List_Icon__c, List_Label__c, 
                         Display_Quick_Filters_All_the_Time__c, Show_SOSL_Search_in_Quick_Filter__c, Show_SOSL_Search__c, Filters_Max_Height__c, Filters_Panel_Layout__c, Filters_Panel_Columns__c,
                         Selectable_Rows__c, Max_Row_Selected__c, Maximum_Number_of_Records__c, Number_of_Records_per_Page__c, Disable_Autoload__c, Disable_Paging__c, Show_List_Header__c,
@@ -698,6 +700,7 @@ global with sharing class SmartListController {
     */ 
     public static Smart_List_Field__mdt[] getListFields(Id listId) {
         if (listFields == null)
+            // Query on system object in System Mode - no possible SQL injection, filter based on data from the AppBuilder, results never sent to the UI
             return [SELECT Display_Position__c, Display_Type__c, Field_Label__c, Field_Name__c, List_Field__c, Default_Sort_Field__c, 
                         File_Edit__c, Sortable__c, Filterable__c, Column_Width__c, Display_as_Badge__c, Badge_Style_Field__c, Tile_Header__c,
                         Quick_Filters_Field__c, Display_Position_in_Quick_Filters__c, Hyperlink_to_Detail_Id_Field__c, URL_Value__c,
@@ -714,6 +717,7 @@ global with sharing class SmartListController {
     */ 
     public static Smart_List_Filter__mdt[] getListFilters(Id listId) {
         if (listFilters == null)
+            // Query on system object in System Mode - no possible SQL injection, filter based on data from the AppBuilder, results never sent to the UI
             return [SELECT DeveloperName, Filter_Label__c, SOQL_Filter__c, Default_Filter__c, Custom_Permission__c
                     FROM Smart_List_Filter__mdt WHERE Smart_List_Definition__c = :listId ];
         else
@@ -726,6 +730,7 @@ global with sharing class SmartListController {
     */ 
     public static Smart_List_Action__mdt[] getListActions(Id listId) {
         if (listActions == null)
+            // Query on system object in System Mode - no possible SQL injection, filter based on data from the AppBuilder, results never sent to the UI
             return [SELECT 	DeveloperName, Display_Position__c, Action_Label__c, Flow_Name__c, 
                             Screenflow_Modal_Height__c, Screenflow_Show_Label_in_Modal_Header__c,
                             Refresh_After_Execution__c, Type__c, Category__c, Custom_Permission__c, List_Action_Availibility__c
@@ -794,8 +799,9 @@ global with sharing class SmartListController {
                 context.Query_Fields__c = getSOQLListParameters(sld, slfs, objectsCache, baseObject, result);
                 result.namespace = UserInfo.getOrganizationName() == 'LabsDevFmedioni' ? '' : 'smartlists__';
             }
-            // Save context
-            Upsert context List_ID__c;
+            // Save context in without sharing class: allow guest users to update the record
+            UpsertContext.UpsertContext(context);
+            //Upsert context List_ID__c;
             // Build list of standard actions for SOQL or Apex with Object
             if (sld.Data_Source_Type__c == DATASOURCE_SOQL_WITH_SHARING || sld.Data_Source_Type__c == DATASOURCE_SOQL_WITHOUT_SHARING || 
                 (isApex && baseObject != null)) {
@@ -866,6 +872,7 @@ global with sharing class SmartListController {
             context = getListContext(listName);
         if (context.Parent_Key_Field__c != null) {
             String query = 'SELECT ' + context.Parent_Key_Field__c + ' FROM ' + context.Parent_Object__c + ' WHERE Id = \'' + recordId + '\'';
+            // Query on system object in System Mode - no possible SQL injection, filter based on data from the controller & LWC (recordId)
             sObject s = Database.query(query);
             return (s.get(context.Parent_Key_Field__c) == null) ? null : String.valueOf(s.get(context.Parent_Key_Field__c));
         } else
@@ -893,10 +900,12 @@ global with sharing class SmartListController {
         if (permNames.size() > 0) {
             // Put custom permission ids and name in map for check on permission name
             Map<Id, String> permsMap = new Map<Id, String>();
+            // Query on setup object in System Mode - no possible SQL injection, filter based on data from the controller, results never sent to the UI
             for (CustomPermission cp : [SELECT Id, DeveloperName FROM CustomPermission WHERE DeveloperName IN :permNames]) {
                 permsMap.put(cp.id, cp.DeveloperName);
             }
             // Retrieve user access for custom permissions and populate a result set of permission names assigned to user
+            // Query on setup object in System Mode - no possible SQL injection, filter based on data from the controller, results never sent to the UI
             for (SetupEntityAccess sea : [SELECT ParentId, SetupEntityId FROM SetupEntityAccess
                     WHERE ParentId IN (SELECT PermissionSetId
                                         FROM PermissionSetAssignment
@@ -1362,6 +1371,11 @@ global with sharing class SmartListController {
                 if (listFilter.contains('PARENTID'))
                     listFilter = listFilter.replaceAll('PARENTID', '\'' + parentId + '\'');
             }
+            // Remove extension for sort on formatted currency field
+            if (sortField != null)
+                sortField = sortField.replaceAll('_FMT', '');
+            if (sortField != null)
+                sortField = sortField.replaceAll('_CC', '');
             // Calls the query interface for the data source type
             if (dataSourceType == DATASOURCE_APEX) {
                 Type t = Type.forName(dataProviderClass);
@@ -1382,9 +1396,9 @@ global with sharing class SmartListController {
     */
     public static Context__c getListContext(String listName) {
         String listId = listName + UserInfo.getUserId();
+        // Query on internal object in System Mode - no possible SQL injection, filter based on data from the controller, results never sent to the UI
         List<Context__c> context = [SELECT Data_Source_Type__c, Data_Provider_Class__c, Object_Name__c, Query_Fields__c, Parent_Id_Field__c, Parent_Object__c, 	Parent_Key_Field__c
                                     FROM Context__c WHERE List_ID__c = :listId LIMIT 1];
-        System.debug(listId + ' - ' + Context);
         if (context.size() == 0)
             throw new AuraHandledException('Context not found for list ' + listName);
         else
@@ -1416,6 +1430,7 @@ global with sharing class SmartListController {
             String cdIds = '';
             if (parentId == null)
                 return new List<SObject>();
+            // Query on system object in System Mode - no possible SQL injection, filter based on data from the controller, results never sent to the UI
             for (ContentDocumentLink cdl : [SELECT ContentDocumentId FROM ContentDocumentLink WHERE LinkedEntityId = :parentId]){
                 cdIds += String.isNotEmpty(cdIds) ? ', ' : '';
                 cdIds += '\'' + cdl.ContentDocumentId + '\'';
@@ -1458,6 +1473,7 @@ global with sharing class SmartListController {
         }
         // My Queues Scope
         else if (soqlScope == SCOPE_MY_QUEUES) {
+            // Query on setup object in System Mode - no possible SQL injection, filter based on data from the controller, results never sent to the UI
             List<GroupMember> gms = [SELECT GroupId FROM GroupMember WHERE UserOrGroupId = :UserInfo.getUserId() 
                                         AND GroupId IN (SELECT QueueId FROM QueueSobject WHERE SobjectType = :objectName)];
             if (gms.size() == 0)
@@ -1665,7 +1681,7 @@ global with sharing class SmartListController {
             } else {
                 String query = 'SELECT ' + String.escapeSingleQuotes(queryFields) + ' FROM ' + objectName + ' WHERE Id = :id';
                 //System.debug('Query ' + id + ' -> ' + query);
-                List<SObject> records =  Database.query(query);
+                List<SObject> records =  Database.query(query, AccessLevel.USER_MODE);
                 return records;
             }
         } catch (Exception e) {
@@ -1727,7 +1743,7 @@ global with sharing class SmartListController {
         List<RecentlyViewed> recentRecords = [
             SELECT Id
             FROM RecentlyViewed
-            WHERE Type = :objectName
+            WHERE Type = :objectName WITH USER_MODE
             ORDER BY LastViewedDate DESC
             LIMIT 100
         ];
@@ -1741,9 +1757,9 @@ global with sharing class SmartListController {
         if (String.isNotEmpty(recIds)) {
             String whereClause = !String.isEmpty(soqlFilter) ? ' AND (' + soqlFilter  + ')' : '';
             String query = 'SELECT Id, Name' + (String.isNotEmpty(subtitleField) ? ', ' + subtitleField : '') + ' FROM ' + objectName + ' WHERE Id IN (' + recIds + ')' +
-                whereClause + ' WITH USER_MODE ORDER BY LastViewedDate DESC LIMIT 20';
+                whereClause + ' ORDER BY LastViewedDate DESC LIMIT 20';
             //System.debug(query);
-            records = Database.query(query);
+            records = Database.query(query, AccessLevel.USER_MODE);
             for (SObject obj : records) {
                 results.add(new LookupSearchResult(obj.Id, (String)obj.get(titleField), String.isEmpty(subtitleField) ? '' : (String)obj.get(subtitleField)));
             }
