@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Wrap_Column_Headers__c</fullName>
+    <defaultValue>false</defaultValue>
+    <fieldManageability>DeveloperControlled</fieldManageability>
+    <inlineHelpText>If present, the column headers are wrapped up to 3 lines if they are too wide for the column width. If unchecked, the column headers are displayed in a singled line and clipped if needed</inlineHelpText>
+    <label>Wrap Column Headers</label>
+    <type>Checkbox</type>
+</CustomField>

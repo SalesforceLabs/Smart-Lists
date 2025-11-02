@@ -1,0 +1,47 @@
+<template>
+    <div>
+        <section role="dialog" tabindex="-1" aria-modal="true" aria-describedby="modal-heading-01"
+            class="slds-modal slds-fade-in-open">
+            <div class="slds-modal__container modal-style">
+                <button class="slds-button slds-button_icon slds-modal__close" title={labels.labelClose}
+                    disabled={saving} onclick={closeModal}>
+                    <lightning-icon size="x-small" icon-name="utility:close" alternative-text={labels.labelClose}
+                        title={labels.labelClose}></lightning-icon>
+                    <label></label>
+                </button>
+                <header class="slds-modal__header">
+                    <h1 id="modal-heading-01" class="slds-modal__title slds-hyphenate">
+                        {labels.labelEdit} {fileTitle}
+                    </h1>
+                </header>
+                <lightning-record-edit-form record-id={recordId} record-type-id={recordTypeId}
+                    object-api-name="ContentVersion" onsubmit={handleSubmit} onsuccess={handleSaveSuccess}>
+                    <div class="slds-modal__content slds-is-relative slds-var-p-around_medium" id="modal-content-id-1">
+                        <template lwc:if={saving}>
+                            <lightning-spinner variant="brand" alternative-text={labels.labelSaving}></lightning-spinner>
+                        </template>
+                        <lightning-messages></lightning-messages>
+                        <template for:each={fields} for:item="row">
+                            <div key={row.key} class="slds-grid slds-gutters_small">
+                                <template for:each={row} for:item="field">
+                                    <div class="slds-col slds-size_1-of-2 slds-has-flexi-truncate" role="listitem"
+                                        key={field.name}>
+                                        <lightning-input-field field-name={field.name} required={field.required}>
+                                        </lightning-input-field>
+                                    </div>
+                                </template>
+                            </div>
+                        </template>
+                    </div>
+                    <footer class="slds-modal__footer">
+                        <button class="slds-button slds-button_neutral" type="button" onclick={closeModal}
+                            title={labels.labelCancel} disabled={saving}>{labels.labelCancel}</button>
+                        <button class="slds-button slds-button_brand" type="submit" title={labels.labelSave}
+                            disabled={saving}>{labels.labelSave}</button>
+                    </footer>
+                </lightning-record-edit-form>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    </div>
+</template>

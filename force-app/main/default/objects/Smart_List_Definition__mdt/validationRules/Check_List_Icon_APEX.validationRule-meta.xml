@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Check_List_Icon_APEX</fullName>
+    <active>true</active>
+    <errorConditionFormula>ISPICKVAL(Data_Source_Type__c, &quot;Apex Data Source&quot;) &amp;&amp; 
+ISBLANK(  SObject__c ) &amp;&amp; ISBLANK(   List_Icon__c   )</errorConditionFormula>
+    <errorDisplayField>List_Icon__c</errorDisplayField>
+    <errorMessage>List Icon is required for APEX Data Source without SObject</errorMessage>
+</ValidationRule>

@@ -1,0 +1,5 @@
+table {
+   --table-width: 0;
+}.sl-table {
+    width:  var(--tableWidth);
+}

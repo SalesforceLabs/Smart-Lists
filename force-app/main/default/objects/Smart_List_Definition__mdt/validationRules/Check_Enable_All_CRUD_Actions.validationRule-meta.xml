@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Check_Enable_All_CRUD_Actions</fullName>
+    <active>true</active>
+    <errorConditionFormula>Enable_CRUD_Actions__c &amp;&amp; ( Enable_Delete_Record_Action__c ||  Enable_Edit_Record_Action__c ||  Enable_New_Record_Action__c )</errorConditionFormula>
+    <errorDisplayField>Enable_CRUD_Actions__c</errorDisplayField>
+    <errorMessage>Enable All Record Actions cannot be checked when individual record actions are selected</errorMessage>
+</ValidationRule>

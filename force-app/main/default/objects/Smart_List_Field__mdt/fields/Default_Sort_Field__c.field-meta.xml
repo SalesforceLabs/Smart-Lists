@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Default_Sort_Field__c</fullName>
+    <defaultValue>false</defaultValue>
+    <description>Field used for sorting the list when it is displayed. for the first time</description>
+    <externalId>false</externalId>
+    <fieldManageability>DeveloperControlled</fieldManageability>
+    <label>Default Sort Field</label>
+    <type>Checkbox</type>
+</CustomField>

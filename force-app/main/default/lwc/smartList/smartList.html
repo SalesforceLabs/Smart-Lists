@@ -1,0 +1,17 @@
+<template>
+  <c-smart-list-shared record-id={recordId} list-name={listName} in-record-page={inRecordPage} in-tab={inTab}
+      flow={flow} min-row-selected={minRowSelected} oninitialize={handleInitialize}
+      onrowaction={handleRowAction}>
+      <template if:true={newRecordAction}>
+          <div class="slds-page-header__control" slot="actionButtons">
+              <lightning-button label={newRecordAction.label} title={newRecordAction.label} onclick={handleNewRecord}>
+              </lightning-button>
+          </div>
+      </template>
+  </c-smart-list-shared>
+  <template if:true={showEditRecordModal}>
+      <c-edit-record-modal object-name={objectName} object-label={objectLabel} record-types={recordTypes}
+          parent-record-field={parentIdField} parent-record-id={parentId} record-id={currentRecordId}
+          record-type-id={currentRecordTypeId} onclose={handleCloseEditRecord}></c-edit-record-modal>
+  </template>
+</template>

@@ -1,0 +1,12 @@
+sfdx-projectold.json
+.sfdx/
+.vscode/settings.json
+.sf/config.json
+config/project-scratch-def.json
+force-app/.DS_Store
+force-app/main/.DS_Store
+force-app/main/default/.DS_Store
+force-app/main/default/objects/Smart_List_Filter__mdt/.DS_Store
+force-app/main/default/objects/.DS_Store
+force-app/main/default/objects/Smart_List_Action__mdt/.DS_Store
+.DS_Store

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Sortable__c</fullName>
+    <defaultValue>false</defaultValue>
+    <externalId>false</externalId>
+    <fieldManageability>DeveloperControlled</fieldManageability>
+    <inlineHelpText>This field is deprecated: Use Sortable in list instead
+The field is sortable in the list. Only used with Apex Data Source</inlineHelpText>
+    <label>Sortable (Deprecated)</label>
+    <type>Checkbox</type>
+</CustomField>

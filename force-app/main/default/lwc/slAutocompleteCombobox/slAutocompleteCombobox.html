@@ -1,0 +1,130 @@
+<!-- sldsValidatorIgnore -->
+<template>
+    <div class={formElementClass}>
+        <!-- Header Label -->
+        <label class={labelClass} for={compId}>
+            <abbr lwc:if={required} title="required" class="slds-required">*</abbr>
+            {label}
+        </label>
+        <div class="slds-form-element__control">
+            <div class="slds-combobox_container">
+                <div class={dropdownClass}>
+                    <div lwc:if={singleSelect} class="slds-combobox__form-element slds-input-has-icon slds-input-has-icon_right" role="none" onclick={handleButtonClick}>
+                        <!-- Single Select Button -->
+                        <button type="button" id={compId} class={buttonClass} aria-autocomplete="list"
+                            aria-controls="listbox-id-1" aria-expanded={isListboxOpen} aria-haspopup="listbox"
+                            aria-activedescendant={activedescendant} aria-describedby={describedby}
+                            aria-invalid={hasError} role="combobox" disabled={disabled}
+                            onfocus={handleCompFocus} onblur={handleButtonBlur} onkeydown={handleButtonKeyDown}>
+                            <template lwc:if={isOperator}>
+                                <span class="slds-assistive-text">{buttonLabel}</span>
+                            </template>
+                            <template lwc:else>
+                                <div class="slds-truncate slds-text-align_left">{buttonLabel}</div>
+                            </template>
+                        </button>
+                        <div class={buttonIconDivClass}>
+                            <lightning-icon class={buttonIconClass} icon-name="utility:down" size="xx-small"
+                                alternative-text="searchbutton"></lightning-icon>
+                        </div>
+                    </div>
+                    <div lwc:else class="slds-combobox__form-element slds-input-has-icon slds-input-has-icon_right" role="none" onclick={handleInputMultiClick}>
+                        <!-- Search Input multiselect -->
+                        <input type="text" class={inputMultiClass} id={compId} aria-autocomplete="list"
+                            aria-controls="listbox-id-1" aria-expanded={isListboxOpen} aria-haspopup="listbox"
+                            aria-activedescendant={activedescendant} aria-describedby={describedby}
+                            aria-invalid={hasError} autocomplete="off" role="combobox"
+                            placeholder={inputMultiPlaceholder} disabled={disabled}
+                            onfocus={handleCompFocus} onblur={handleInputMultiBlur} oninput={handleInput}
+                            onkeydown={handleInputKeyDown} />
+                        <lightning-icon lwc:if={multiSelect} class="slds-input__icon" icon-name="utility:down"
+                            size="xx-small" alternative-text={labels.labelSearch}></lightning-icon>
+                    </div>
+                    <!-- Dropdown List -->
+                    <div id="listbox-id-1" class={listboxClass} role="listbox" aria-label={label}
+                        onmousedown={handleDropdownMouseDown} onmouseup={handleDropdownMouseUp}>
+                        <!-- Search Input singleselect -->
+                        <div lwc:if={showSingleSelectInput} class="slds-form-element">
+                            <label class="slds-form-element__label slds-assistive-text"
+                                for="input-single">{labels.labelSearch}</label>
+                            <div class="slds-form-element__control slds-input-has-icon slds-input-has-icon_left">
+                                <lightning-icon
+                                    class="slds-input__icon slds-input__icon_left slds-icon-text-default sl-search-icon"
+                                    icon-name="utility:search" size="xx-small"
+                                    alternative-text="search"></lightning-icon>
+                                <input type="text" class={inputSingleClass} id="input-single" aria-autocomplete="list"
+                                    aria-controls="listbox-id-1" aria-expanded={isListboxOpen} aria-haspopup="listbox"
+                                    aria-activedescendant={activedescendant} aria-label="search"
+                                    aria-describedby={describedby} aria-invalid={hasError} autocomplete="off"
+                                    role="searchbox" placeholder={inputSinglePlaceholder} disabled={disabled}
+                                    oninput={handleInput} onkeydown={handleInputKeyDown}
+                                    onblur={handleInputSingleBlur} />
+                            </div>
+                        </div>
+                        <ul class="slds-listbox slds-dropdown_length-5 slds-listbox_vertical" role="presentation">
+                            <!-- Result list start -->
+                            <template lwc:if={hasItems} for:each={items} for:item="item" for:index="index">
+                                <li key={item.value} role="presentation" class="slds-listbox__item">
+                                    <div class={item.classes} role="option" id={index} tabindex="0"
+                                        aria-checked={item.selected} data-index={item.index} onclick={handleItemClick}>
+                                        <span class="slds-media__figure slds-listbox__option-icon">
+                                            <lightning-icon lwc:if={item.selected} icon-name="utility:check"
+                                                size="x-small"></lightning-icon>
+                                        </span>
+                                        <span class="slds-media__body">
+                                            <lightning-formatted-rich-text value={item.formattedLabel} disable-linkify>
+                                            </lightning-formatted-rich-text>
+                                        </span>
+                                    </div>
+                                </li>
+                            </template>
+                            <!-- Result list end -->
+
+                            <!-- No results start -->
+                            <template lwc:else>
+                                <li role="presentation">
+                                    <span class="slds-media slds-listbox__option_entity" role="option">
+                                        <span class="slds-media__body">{labels.labelLookupNoResults}</span>
+                                    </span>
+                                </li>
+                            </template>
+                            <!-- No results end -->
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Error Message -->
+        <div lwc:if={hasError} class="sl-error-msg slds-form-element__help" id="form-error-01" aria-live="assertive">
+            {error}</div>
+        <!-- Multi Select Pills -->
+        <div lwc:if={showPills} class="sl-pills slds-listbox_selection-group">
+            <div class="slds-grid">
+                <div class="slds-col">
+                    <ul class="slds-listbox slds-listbox_horizontal" aria-label={labels.labelSelectedOptions}>
+                        <template for:each={selectedItems} for:item="item">
+                            <li key={item.value} class="sl-pill slds-listbox-item">
+                                <span part="pill" class="slds-pill">
+                                    <span class="slds-pill__label" title={item.label}>{item.label}</span>
+                                    <span class="slds-icon_container slds-pill__remove" title={labels.labelRemove}>
+                                        <button
+                                            class="slds-button slds-button_icon slds-button_icon slds-pill__remove sl-internal"
+                                            title={labels.labelRemove} data-value={item.value}
+                                            onclick={handleRemovePill}>
+                                            <lightning-icon icon-name="utility:close" size="x-small"></lightning-icon>
+                                            <span class="slds-assistive-text">{labels.labelRemove}</span>
+                                        </button>
+                                    </span>
+                                </span>
+                            </li>
+                        </template>
+                    </ul>
+                </div>
+                <div lwc:if={isDatatableEditor} class="slds-col" aria-hidden="true">
+                    <button class="slds-button slds-p-left_xx-small sl-internal sl-clear-all-button"
+                        onclick={handleClearSelection}>{labels.labelClearAll}</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>

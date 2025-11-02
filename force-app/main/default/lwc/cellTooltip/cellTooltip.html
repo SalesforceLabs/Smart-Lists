@@ -1,0 +1,9 @@
+<template>
+    <div class={tooltipClass} role="tooltip" id="help">
+    <div class="slds-popover__body">
+        <template lwc:if={typeData}>
+            <c-field-viewer value={value} currency-code={currencyCode} type-data={typeData} show={show} context="tooltip"></c-field-viewer>
+        </template>
+    </div>
+</div>
+</template>

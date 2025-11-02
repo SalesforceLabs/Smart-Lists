@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Check_Number_of_Columns</fullName>
+    <active>true</active>
+    <errorConditionFormula>Number_of_columns__c &lt; 1 ||  Number_of_columns__c &gt; 3</errorConditionFormula>
+    <errorDisplayField>Number_of_columns__c</errorDisplayField>
+    <errorMessage>Number of Columns must be between 1 and 3</errorMessage>
+</ValidationRule>

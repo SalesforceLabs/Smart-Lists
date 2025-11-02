@@ -1,0 +1,150 @@
+<!-- sldsValidatorIgnore -->
+<template>
+    <template lwc:if={showSpinner}>
+        <div class="slds-page-header__row">
+            <lightning-spinner alternative-text={labels.labelLoading} size="small" variant="brand"></lightning-spinner>
+        </div>
+    </template>
+    <c-cell-tooltip value={tooltipValue} currency-code={tooltipCurrencyCode} type-data={tooltipTypeData}
+        cell-rect={tooltipCellRect} container-rect={tooltipContainerRect} show={showTooltip}
+        class="sl-tooltip slds-hide">
+    </c-cell-tooltip>
+    <template lwc:if={isTable}>
+        <template lwc:if={initializedContext}>
+            <div class={datatableClass}>
+                <c-sl-datatable key-field={rowKey} data={datatableRecords} columns={columns}
+                    max-row-selection={maxRowSelected} hide-checkbox-column={hideCheckboxColumm}
+                    hide-table-header={hideTableHeader} show-row-number-column={showRowNumberColumn}
+                    row-number-offset={rowNumberStart} selected-rows={selectedRecordsProgrammatic}
+                    default-sort-direction={defaultSortDirection} sorted-direction={sortDirection}
+                    sorted-by={_sortField} wrap-table-header={wrapColumnHeaders} wrap-text-max-lines={wrapMaxLines}
+                    onsort={handleSort} onrowaction={handleDatatableRowAction}
+                    onrowselection={handleDatatableRowSelection} load-more-offset="40"
+                    enable-infinite-loading={canLoadData} onloadmore={handleLoadMore} ontooltip={handleTooltip}
+                    ondisplayvalue={handleDisplayValue} is-loading={isLoading} draft-values={draftValues}
+                    onsave={handleDatatableSave} oncellchange={handleCellChange}
+                    oncelledited={handleCellEdited} errors={errors}>
+                </c-sl-datatable>
+            </div>
+            <template lwc:if={hasRecords}>
+                <div class="sl-footer slds-card__footer slds-m-top_none slds-m-bottom_medium">
+                    <span lwc:if={canLoadData} style="float:left;">
+                        <button class="slds-var-m-right_medium slds-button sl-load-button"
+                            onclick={handleLoadMoreClick}>{labels.labelLoadMore}</button>
+                        <button lwc:if={showLoadAllButton}
+                            class="slds-var-m-left_medium slds-var-m-right_x-large slds-button sl-load-button"
+                            onclick={handleLoadAll}>{labels.labelLoadAll}</button>
+                    </span>
+                    <span style="float:right;">{loadStatus}</span>
+                </div>
+            </template>
+        </template>
+    </template>
+    <template lwc:else>
+        <template lwc:if={initializedContext}>
+            <template lwc:if={hasRecords}>
+                <div class="slds-card__body sl-tile sl-viewer-border-top slds-m-top_none slds-m-bottom_none">
+                    <ul class="sl-tile-container slds-grid slds-wrap slds-grid-pull-padded sl-tile-body slds-scrollable_y" onscroll={handleTileScroll}>
+                        <template for:each={tilesRecords} for:item="tileRecord">
+                            <li key={tileRecord.Id} class={tileRowClass}>
+                                <article
+                                    class="slds-tile slds-media slds-card__tile slds-hint-parent slds-var-p-horizontal_medium">
+                                    <div class="slds-media__figure">
+                                        <template lwc:if={tileRecord.header.canSelectRows}>
+                                            <template lwc:if={tileRecord.header.isMultiSelect}>
+                                                <div class="slds-checkbox">
+                                                    <input type="checkbox" data-id={tileRecord.Id} id={tileRecord.Id} disabled={tileRecord.disabled}
+                                                        class="sl-row-selector" onchange={handleTileRowSelection} />
+                                                    <label class="slds-checkbox__label" for={tileRecord.Id}>
+                                                        <span class="slds-checkbox_faux sl-selection-checkbox"></span>
+                                                    </label>
+                                                </div>
+                                            </template>
+                                            <template lwc:else>
+                                                <div class="slds-radio">
+                                                    <input type="radio" data-id={tileRecord.Id} id={tileRecord.Id}
+                                                        class="sl-row-selector sl-radio"
+                                                        onchange={handleTileRowSelection} />
+                                                    <label class="slds-radio__label" for={tileRecord.Id}>
+                                                        <span class="slds-radio_faux sl-selection-checkbox"></span>
+                                                    </label>
+                                                </div>
+                                            </template>
+                                        </template>
+                                    </div>
+                                    <div class="slds-media__body">
+                                        <div class="slds-grid slds-grid_align-spread slds-has-flexi-truncate">
+                                            <template lwc:if={tileRecord.header.isUrl}>
+                                                <lightning-formatted-url label={tileRecord.header.value}
+                                                    value={tileRecord.header.url} tooltip={tileRecord.header.value}
+                                                    class="slds-truncate"></lightning-formatted-url>
+                                            </template>
+                                            <template lwc:else>
+                                                <lightning-formatted-text value={tileRecord.header.value}
+                                                    class="slds-truncate"></lightning-formatted-text>
+                                            </template>
+                                            <div class="slds-shrink-none">
+                                                <template lwc:if={tileRecord.header.badgeField}>
+                                                    <span class="slds-badge sl-badge slds-var-m-right_medium"
+                                                        style={tileRecord.header.badgeField.style}>
+                                                        {tileRecord.header.badgeField.value}
+                                                    </span>
+                                                </template>
+                                                <template lwc:if={tileRecord.header.actions}>
+                                                    <lightning-button-menu alternative-text={labels.labelShowActions}
+                                                        class="sl-row-action-button" icon-size="x-small"
+                                                        data-id={tileRecord.Id} onselect={handleTileRowAction}
+                                                        menu-alignment="auto">
+                                                        <template for:each={tileRecord.header.actions}
+                                                            for:item="action">
+                                                            <lightning-menu-item key={action.key} value={action.key}
+                                                                label={action.label}></lightning-menu-item>
+                                                        </template>
+                                                    </lightning-button-menu>
+                                                </template>
+                                            </div>
+                                        </div>
+                                        <div class="slds-grid slds-wrap slds-tile__detail">
+                                            <template for:each={tileRecord.fields} for:item="field">
+                                                <dl key={field.label} class={field.class}>
+                                                    <dt class="slds-item_label slds-text-color_weak slds-truncate">
+                                                        {field.label}:</dt>
+                                                    <dd class="slds-item_detail slds-truncate">
+                                                        <c-field-viewer value={field.value} type-data={field.type}
+                                                            url={field.url} field-style={field.fieldStyle}
+                                                            context="tile">
+                                                        </c-field-viewer>
+                                                    </dd>
+                                                </dl>
+                                            </template>
+                                        </div>
+                                    </div>
+                                </article>
+                            </li>
+                        </template>
+                    </ul>
+                </div>
+                <div class="slds-card__footer slds-m-top_none">
+                    <template lwc:if={canLoadData}>
+                        <button class="slds-var-m-right_medium slds-button sl-load-button"
+                            onclick={handleLoadMoreClick}>{labels.labelLoadMore}</button>
+                        <button lwc:if={showLoadAllButton} class="slds-var-m-left_medium slds-button sl-load-button"
+                            onclick={handleLoadAll}>{labels.labelLoadAll}</button>
+                    </template>
+                    <template lwc:else>
+                        <div class="slds-var-m-right_small slds-text-align_right">
+                            {loadStatus}
+                        </div>
+                    </template>
+                </div>
+            </template>
+        </template>
+    </template>
+    <template lwc:if={initDone}>
+        <template lwc:if={hasNoRecords}>
+            <div class="slds-var-m-around_small slds-text-align_center">
+                <p>{labels.labelNoItemsToDisplay}</p>
+            </div>
+        </template>
+    </template>
+</template>

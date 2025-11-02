@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Lookup_in_Quick_Filters__c</fullName>
+    <defaultValue>false</defaultValue>
+    <externalId>false</externalId>
+    <fieldManageability>DeveloperControlled</fieldManageability>
+    <inlineHelpText>If checked, the filter is displayed as a lookup in the Filters Panel. Otherwise, it is displayed as text field
+Examples for Account.Name on Cases list:
+- if checked and user picks the Edge Corp. account, the search will return all cases related to this account.
+- If unchecked and user enters Acme in the text field, the search will return all the cases related to accounts containing Acme in their name: Acme Corp., Acme Construction
+Only available for related fields of type Text</inlineHelpText>
+    <label>Lookup in Filters Panel</label>
+    <type>Checkbox</type>
+</CustomField>

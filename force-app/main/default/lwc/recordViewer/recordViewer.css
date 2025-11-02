@@ -1,0 +1,53 @@
+.sl-datatable-container {
+    position: relative;
+}
+.sl-load-button {
+    padding-top:0px;
+    padding-bottom: 0px;
+    line-height: 1.5;
+}
+.sl-load-button:hover {
+    text-decoration: underline;
+}
+.sl-tile {
+    background-color: var(--slds-g-color-neutral-base-95,rgb(243, 243, 243))!important;
+    border-bottom-width: var(--lwc-borderWidthThin, 1px);
+    border-bottom-color: var(--lwc-colorBorder, rgb(229, 229, 229));
+    border-bottom-style: solid;
+    overflow-x: auto;
+}
+.sl-tile-body {
+    padding-right: var(--lwc-varSpacingVerticalSmall, 0.75rem)!important;
+    padding-bottom: var(--lwc-varSpacingVerticalSmall, 0.75rem)!important;
+    background-color: var(--slds-g-color-neutral-base-100,rgb(255, 255, 255))!important;
+}
+.sl-viewer-border-top {
+    border-top-width: var(--lwc-borderWidthThin, 1px);
+    border-top-color: var(--lwc-colorBorderButtonDefault);
+    border-top-style: solid;
+}
+.sl-viewer-border-bottom {
+    border-bottom-width: var(--lwc-borderWidthThin, 1px);
+    border-bottom-color: var(--lwc-colorBorderButtonDefault);
+    border-bottom-style: solid;
+}
+.sl-footer {
+    border-top-width: 0px;
+}
+.sl-selection-checkbox {
+    vertical-align: text-bottom;
+}
+.sl-disabled-checkbox {
+    background-color: var(--lwc-colorBackgroundInputCheckbox,rgb(255, 255, 255))!important;
+    color:var(--lwc-colorTextLabel,rgb(68, 68, 68))
+}
+.sl-spinner {
+    height: 2rem;
+}
+.sl-badge {
+    padding-top:1px;
+    padding-bottom: 1px;
+}
+.sl-row-action-button {
+    top: -1px;
+}

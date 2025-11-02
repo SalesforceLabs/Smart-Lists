@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>URL_Target__c</fullName>
+    <externalId>false</externalId>
+    <fieldManageability>DeveloperControlled</fieldManageability>
+    <inlineHelpText>Select _self if you want to display the URL in the current tab. Select _blank if you want to display the URL in a new tab.
+Note: _self can only be used with Salesforce URLs. Non Salesforce URLs are opened in a new tab</inlineHelpText>
+    <label>URL with Label: Target</label>
+    <required>false</required>
+    <type>Picklist</type>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>_blank</fullName>
+                <default>true</default>
+                <label>_blank</label>
+            </value>
+            <value>
+                <fullName>_parent</fullName>
+                <default>false</default>
+                <label>_parent</label>
+            </value>
+            <value>
+                <fullName>_self</fullName>
+                <default>false</default>
+                <label>_self (Salesforce URL only)</label>
+            </value>
+            <value>
+                <fullName>_top</fullName>
+                <default>false</default>
+                <label>_top</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

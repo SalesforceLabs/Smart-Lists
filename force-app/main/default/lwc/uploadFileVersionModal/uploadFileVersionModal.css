@@ -1,0 +1,9 @@
+.sl-iframe {
+    border: none;
+    height:"0px!important";
+    width: "100%!important";
+}
+.sl-reason {
+    padding-top: 16px;
+    margin-bottom:  -16px;
+}

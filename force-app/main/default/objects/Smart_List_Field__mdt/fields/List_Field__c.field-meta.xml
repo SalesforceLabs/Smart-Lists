@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>List_Field__c</fullName>
+    <defaultValue>true</defaultValue>
+    <externalId>false</externalId>
+    <fieldManageability>DeveloperControlled</fieldManageability>
+    <inlineHelpText>If checked, the field is displayed in the list.
+Leave unchecked if you don&apos;t want to display the field in the list but want to display it in the Quick Filters or in the File Edit Form</inlineHelpText>
+    <label>Display in List</label>
+    <type>Checkbox</type>
+</CustomField>

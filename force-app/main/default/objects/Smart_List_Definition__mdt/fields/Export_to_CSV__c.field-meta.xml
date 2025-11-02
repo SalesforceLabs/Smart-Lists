@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Export_to_CSV__c</fullName>
+    <defaultValue>false</defaultValue>
+    <fieldManageability>DeveloperControlled</fieldManageability>
+    <inlineHelpText>If checked, the Export to CSV button is displayed</inlineHelpText>
+    <label>Export to CSV (Deprecated)</label>
+    <type>Checkbox</type>
+</CustomField>

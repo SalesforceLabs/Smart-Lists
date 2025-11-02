@@ -1,0 +1,167 @@
+<template>
+    <section role="dialog" tabindex="-1" aria-modal="true" aria-labelledby="modal-heading-01"
+        class="slds-modal slds-fade-in-open">
+        <div class="slds-modal__container" style="min-width:50%;">
+            <button class="slds-button slds-button_icon slds-modal__close" title={labels.labelClose}
+                onclick={closeModal} disabled={spinnerState}>
+                <lightning-icon size="x-small" icon-name="utility:close" alternative-text={labels.labelClose}
+                    title={labels.labelClose}>
+                    <label>labels.labelClose</label>
+                </lightning-icon>
+            </button>
+            <div class="slds-modal__header">
+                <h1 id="modal-heading-01" class="slds-modal__title slds-hyphenate">
+                    {title}
+                </h1>
+            </div>
+            <div class="slds-modal__content" id="modal-content-id-1" style="position:relative;z-index:0">
+                <div style="min-height:100%; height: 100%; max-width:100%; width: 100%">
+                    <template lwc:if={showRecordTypes}>
+                        <div class="slds-var-p-around_medium">
+                            <lightning-radio-group label="xyz" options={recordTypes} value={recordTypeId}
+                                variant="label-hidden" type="radio" onchange={handleRecordTypeSelected}>
+                            </lightning-radio-group>
+                        </div>
+                        <div class="slds-docked-form-footer sl-fixed-footer stickyFooter bottomfooter">
+                            <lightning-button label={labels.labelCancel} onclick={closeModal}
+                                class="slds-var-m-around_xx-small">
+                            </lightning-button>
+                            <lightning-button label={labels.labelNext} onclick={handleNext} variant="brand"
+                                class="slds-var-m-around_xx-small">
+                            </lightning-button>
+                        </div>
+                    </template>
+                    <template lwc:else>
+                        <div style="display: block;">
+                            <div class="sl-form-legend-desktop">
+                                <abbr class="slds-required">*</abbr>
+                                = {labels.labelRequiredInformation}
+                            </div>
+                            <lightning-record-edit-form object-api-name={objectName} record-id={recordId}
+                                onload={handleLoad} onsubmit={handleSubmit} onsuccess={handleSuccess}
+                                onerror={handleError} layout-type="full" record-type-id={recordTypeId}>
+                                <div class="slds-form slds-is-relative slds-var-p-around_medium" role="list">
+                                    <template lwc:if={spinnerState}>
+                                        <lightning-spinner variant="brand"
+                                            alternative-text={spinnerState}></lightning-spinner>
+                                    </template>
+                                    <template for:each={sections} for:item="section">
+                                        <div key={section.id}
+                                            class="slds-section slds-m-vertical_none has-header slds-is-open slds-var-p-bottom_medium">
+                                            <h3 class=" slds-section__title slds-theme_shade"><span
+                                                    class=" slds-var-p-horizontal_small">{section.label}</span></h3>
+                                            <div
+                                                class="slds-section__content section__content sl-section-align-with-title">
+                                                <div class="slds-form" role="list">
+                                                    <template for:each={section.rows} for:item="row">
+                                                        <div key={row.id} class="slds-grid slds-gutters_small">
+                                                            <template for:each={row.items} for:item="item">
+                                                                <div class={section.fieldClass} role="listitem"
+                                                                    key={item.apiName}>
+                                                                    <template lwc:if={item.isField}>
+                                                                        <template lwc:if={item.editable}>
+                                                                            <template lwc:if={newRecord}>
+                                                                                <lightning-input-field
+                                                                                    field-name={item.apiName}
+                                                                                    required={item.required}
+                                                                                    value={item.value}
+                                                                                    data-field={item.apiName}>
+                                                                                </lightning-input-field>
+                                                                            </template>
+                                                                            <template lwc:else>
+                                                                                <lightning-input-field
+                                                                                    field-name={item.apiName}
+                                                                                    required={item.required}
+                                                                                    data-field={item.apiName}>
+                                                                                </lightning-input-field>
+                                                                            </template>
+                                                                        </template>
+                                                                        <template lwc:else>
+                                                                            <lightning-output-field
+                                                                                field-name={item.apiName}
+                                                                                class={section.fieldClass}></lightning-output-field>
+                                                                        </template>
+                                                                    </template>
+                                                                    <template lwc:if={item.isEmptySpace}>
+                                                                        <span></span>
+                                                                    </template>
+                                                                </div>
+                                                            </template>
+                                                        </div>
+                                                    </template>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+                                <footer class="slds-docked-form-footer sl-fixed-footer stickyFooter bottomfooter">
+                                    <div class="footerdiv">
+                                        <button
+                                            class="sl-form-errors-button slds-button slds-button_icon-error slds-var-m-right_small slds-hide"
+                                            onclick={handleShowErrors}>
+                                            <lightning-icon icon-name="utility:error"
+                                                class="slds-icon-utility-error slds-icon_container" size="small"
+                                                variant="Error" title={labels.labelErrors}>
+                                            </lightning-icon>
+                                        </button>
+                                        <lightning-button label={labels.labelCancel} onclick={closeModal}
+                                            disabled={spinnerState} class="slds-var-m-right_x-small">
+                                        </lightning-button>
+                                        <lightning-button label={labels.labelSave} type="submit" variant="brand"
+                                            disabled={spinnerState}>
+                                        </lightning-button>
+                                    </div>
+                                </footer>
+                            </lightning-record-edit-form>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </div>
+        <div class="sl-errors-popover slds-hide">
+            <section aria-describedby="dialog-body-id-5" aria-labelledby="dialog-heading-id-2"
+                class="slds-popover slds-popover_error slds-nubbin_bottom-left" role="dialog">
+                <lightning-button-icon icon-name="utility:close" alternative-text={labels.labelClose} size="small"
+                    variant="bare-inverse" title={labels.labelClose} class="slds-float_right slds-popover__close"
+                    onclick={handleShowErrors}>
+                </lightning-button-icon>
+                <header class="slds-popover__header">
+                    <div class="slds-media slds-media_center slds-has-flexi-truncate ">
+                        <div class="slds-media__figure">
+                            <lightning-icon icon-name="utility:error" size="x-small" variant="inverse"></lightning-icon>
+                        </div>
+                        <div class="slds-media__body">
+                            <h2 class="slds-truncate slds-text-heading_medium" id="dialog-heading-id-2"
+                                title={labels.labelErrors}>{labels.labelErrors}</h2>
+                        </div>
+                    </div>
+                </header>
+                <div class="slds-popover__body" id="dialog-body-id-5">
+                    <div lwc:if={hasFormErrors}>
+                        <div>
+                            <strong>{labels.labelReviewPageErrors}</strong>
+                        </div>
+                        <ul class="slds-list_dotted slds-var-m-left_medium">
+                            <template for:each={formErrors} for:item="formError">
+                                <li key={formError.id}>{formError.error}</li>
+                            </template>
+                        </ul>
+                    </div>
+                    <div lwc:if={hasFieldErrors}>
+                        <div>
+                            <strong>{labels.labelReviewFieldsErrors}</strong>
+                        </div>
+                        <ul class="slds-list_dotted slds-var-m-left_medium">
+                            <template for:each={fieldErrors} for:item="fieldError">
+                                <li key={fieldError.id}>
+                                    <a data-field={fieldError.field} onclick={handleFieldError}>{fieldError.label}</a>
+                                </li>
+                            </template>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </section>
+    <div class="slds-backdrop slds-backdrop_open"></div>
+</template>

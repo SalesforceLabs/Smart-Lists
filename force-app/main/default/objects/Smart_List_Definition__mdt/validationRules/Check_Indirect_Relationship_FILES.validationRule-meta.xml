@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Check_Indirect_Relationship_FILES</fullName>
+    <active>false</active>
+    <errorConditionFormula>false</errorConditionFormula>
+    <errorDisplayField>Parent_Object__c</errorDisplayField>
+    <errorMessage>Files datasource: Parent Object, Parent Key Field and Parent Id are required for an indirect relationship</errorMessage>
+</ValidationRule>

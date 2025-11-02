@@ -1,0 +1,41 @@
+<template>
+    <div class="slds-form-element">
+        <div class="slds-form-element__control">
+            <div class="slds-input-has-icon slds-input-has-icon_right" style="position: relative;display: flex;align-items: center;">
+                <input type={inputType} value={inputValue} class="slds-input" oninput={handleInput} onkeydown={handleInputKeyDown} style="padding-right: 2.5rem;"/>
+                <lightning-button-icon
+                    icon-name="utility:add"
+                    alternative-text={labels.labelAddValue}
+                    onclick={handleClickAddValue}
+                    class="icon-button" 
+                    size="x-small"
+                    disabled={addValueDisabled}
+                    style="position: absolute;right: 0.25rem;top: 50%;transform: translateY(-50%);">
+                </lightning-button-icon>
+            </div>
+        </div>
+    </div>
+    <div lwc:if={showPills} class="sl-pills slds-listbox_selection-group">
+        <div class="slds-grid">
+            <div class="slds-col">
+                <ul class="slds-listbox slds-listbox_horizontal" aria-label={labels.labelSelectedOptions}>
+                    <template for:each={selectedItems} for:item="item">
+                        <li key={item.value} class="sl-pill slds-listbox-item">
+                            <span part="pill" class="slds-pill">
+                                <span class="slds-pill__label" title={item.value}>{item.value}</span>
+                                <span class="slds-icon_container slds-pill__remove" title={labels.labelRemove}>
+                                    <button
+                                        class="slds-button slds-button_icon slds-button_icon slds-pill__remove sl-internal"
+                                        title={labels.labelRemove} data-value={item.value} onclick={handleRemovePill}>
+                                        <lightning-icon icon-name="utility:close" size="x-small"></lightning-icon>
+                                        <span class="slds-assistive-text">{labels.labelRemove}</span>
+                                    </button>
+                                </span>
+                            </span>
+                        </li>
+                    </template>
+                </ul>
+            </div>
+        </div>
+    </div>
+</template>

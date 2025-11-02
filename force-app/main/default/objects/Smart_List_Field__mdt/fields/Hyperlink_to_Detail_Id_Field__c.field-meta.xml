@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Hyperlink_to_Detail_Id_Field__c</fullName>
+    <externalId>false</externalId>
+    <fieldManageability>DeveloperControlled</fieldManageability>
+    <inlineHelpText>Only used if Display Type = Hyperlink to Detail.
+Field of the record containing the Id of the target record.
+For SOQL and Files list, enter a value if you don&apos;t want to use the default value
+Required for Apex Data Source.</inlineHelpText>
+    <label>Hyperlink to Detail: Id Field</label>
+    <length>255</length>
+    <required>false</required>
+    <type>Text</type>
+    <unique>false</unique>
+</CustomField>

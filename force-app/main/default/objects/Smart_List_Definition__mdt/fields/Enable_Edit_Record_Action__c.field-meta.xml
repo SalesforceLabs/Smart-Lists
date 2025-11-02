@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Enable_Edit_Record_Action__c</fullName>
+    <defaultValue>false</defaultValue>
+    <fieldManageability>DeveloperControlled</fieldManageability>
+    <inlineHelpText>The Edit record action is displayed if the running user has Edit right on the object.
+This property is only considered when Enable all Record Actions is not checked</inlineHelpText>
+    <label>Enable Edit Record Action</label>
+    <type>Checkbox</type>
+</CustomField>

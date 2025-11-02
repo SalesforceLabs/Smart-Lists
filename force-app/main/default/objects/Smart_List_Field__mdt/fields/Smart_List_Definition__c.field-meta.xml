@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Smart_List_Definition__c</fullName>
+    <externalId>false</externalId>
+    <fieldManageability>DeveloperControlled</fieldManageability>
+    <label>Smart List Definition</label>
+    <referenceTo>Smart_List_Definition__mdt</referenceTo>
+    <relationshipLabel>Smart List Fields</relationshipLabel>
+    <relationshipName>Smart_List_Fields</relationshipName>
+    <required>true</required>
+    <type>MetadataRelationship</type>
+    <unique>false</unique>
+</CustomField>

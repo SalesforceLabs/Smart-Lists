@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Sortable_in_List__c</fullName>
+    <defaultValue>&apos;Yes if Sortable&apos;</defaultValue>
+    <externalId>false</externalId>
+    <fieldManageability>DeveloperControlled</fieldManageability>
+    <inlineHelpText>With &apos;Yes if Sortable (Nulls First) or (Nulls Last)&apos; is selected, the field will be sortable in the list if the data type of the field is sortable in Salesforce. Example: Text is sortable and Text Area Long is not
+Nulls First: null values are displayed before non null values
+Nulls Last: null values are displayed after non null values</inlineHelpText>
+    <label>Sortable in List</label>
+    <required>false</required>
+    <type>Picklist</type>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>Yes if Sortable</fullName>
+                <default>true</default>
+                <label>Yes if Sortable (Nulls First)</label>
+            </value>
+            <value>
+                <fullName>Yes-NullsLast</fullName>
+                <default>false</default>
+                <label>Yes if Sortable (Nulls Last)</label>
+            </value>
+            <value>
+                <fullName>No</fullName>
+                <default>false</default>
+                <label>No</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

@@ -1,0 +1,180 @@
+<template>
+    <article class={articleClass}>
+        <template lwc:if={showSpinner}>
+            <lightning-spinner alternative-text={labels.labelLoading} size="small" variant="brand"></lightning-spinner>
+        </template>
+
+        <div class={pageHeaderClass}>
+            <template lwc:if={initializedContext}>
+                <div class={pageHeaderRow1Class}>
+                    <div class="slds-page-header__col-title">
+                        <div class="slds-media">
+                            <div class="slds-media__figure">
+                                <lightning-icon icon-name={icon} size={iconSize}></lightning-icon>
+                            </div>
+                            <div class="slds-media__body slds-align-middle">
+                                <h1 class={titleClass}>{title}</h1>
+                            </div>
+                        </div>
+                    </div>
+                    <div slot="actions" class="slds-page-header__col-actions">
+                        <div class="slds-page-header__controls">
+                            <template for:each={customListActions} for:item="listAction">
+                                <div key={listAction.key} class="slds-page-header__control">
+                                    <lightning-button lwc:if={listAction.availabilitySelected} name={listAction.key}
+                                        label={listAction.label} disabled={recordViewer.hasNoSelectedRecords}
+                                        title={listAction.label} onclick={handleListAction}>
+                                    </lightning-button>
+                                    <lightning-button lwc:if={listAction.availabilityLoaded} name={listAction.key}
+                                        label={listAction.label} disabled={recordViewer.hasNoRecords}
+                                        title={listAction.label} onclick={handleListAction}>
+                                    </lightning-button>
+                                    <lightning-button lwc:if={listAction.availabilityAlways} name={listAction.key}
+                                        label={listAction.label} title={listAction.label} onclick={handleListAction}>
+                                    </lightning-button>
+                                </div>
+                            </template>
+                            <slot name="actionButtons"></slot>
+                        </div>
+                    </div>
+                </div>
+                <div class="slds-page-header__row sl-page-header-row2">
+                    <div class="slds-page-header__col-meta">
+                        <p class="slds-text-body_small">
+                            <span>{itemsCountLabel} {itemsLabel}</span>
+                            <template if:true={recordViewer.sortFieldLabel}>
+                                <span>&nbsp;•&nbsp;{labels.labelSortedBy} {recordViewer.sortFieldLabel}</span>
+                            </template>
+                            <template if:true={filterByFields}>
+                                <span>&nbsp;•&nbsp;{labels.labelFilteredBy} {filterByFields}</span>
+                            </template>
+                            <span> </span>
+                        </p>
+                    </div>
+                    <div class="slds-page-header__col-controls">
+                        <div class="slds-page-header__controls">
+                            <div class="slds-page-header__control sl-search-box sl-tooltip-container"
+                                onkeyup={handleSOSLSearchKeyup} lwc:if={showSOSLSearch}>
+                                <lightning-input label={labels.labelSearchBoxLabel}
+                                    placeholder={labels.labelSearchBoxPlaceholder} type="search" variant="label-hidden"
+                                    onfocus={handleSOSLSearchFocus} onblur={handleSOSLSearchBlur}>
+                                </lightning-input>
+                                <div class="slds-popover slds-popover_tooltip slds-nubbin_top-left sl-tooltip"
+                                    role="tooltip">
+                                    <div class="slds-popover__body">{filtersPanel.nonSearchableFields}</div>
+                                </div>
+                            </div>
+                            <div class="slds-page-header__control" lwc:if={showFilters}>
+                                <c-sl-autocomplete-combobox label={labels.labelFilterSelection} variant="label-hidden"
+                                    dropdown-alignment="auto" value={currentListFilter.value} options={listFilters}
+                                    onchange={handleChangeFilter}>
+                                </c-sl-autocomplete-combobox>
+                            </div>
+                            <div class="slds-page-header__control" lwc:if={showScopes}>
+                                <lightning-combobox label={labels.labelVisibilityFilterSelection}
+                                    dropdown-alignment="auto" variant="label-hidden " value={currentSoqlScope}
+                                    options={soqlScopes} onchange={handleChangeScope}>
+                                </lightning-combobox>
+                            </div>
+                            <div class ="slds-page-header__control" lwc:if={showSelectAll}>
+                                <lightning-button-icon icon-name="utility:check" onclick={handleSelectAll}
+                                    alternative-text={labels.labelSelectAll} variant="border-filled">
+                                    <label>{labels.labelRefresh}</label>
+                                </lightning-button-icon>
+                            </div>
+                            <div class="slds-page-header__control" lwc:if={showSort}>
+                                <lightning-button-group>
+                                    <lightning-button-menu alternative-text={labels.labelSortFieldSelection}
+                                        title={labels.labelSortFieldSelection} icon-name="utility:sort"
+                                        onselect={handleSortField}>
+                                        <template for:each={recordViewer.sortFields} for:item="field">
+                                            <lightning-menu-item key={field.name} value={field.name} label={field.label}
+                                                checked={field.current}></lightning-menu-item>
+                                        </template>
+                                    </lightning-button-menu>
+                                    <lightning-button-icon alternative-text={sortDirectionTitle}
+                                        icon-name={sortDirectionIcon} onclick={handleSortDirection}
+                                        variant="border-filled"></lightning-button-icon>
+                                </lightning-button-group>
+                            </div>
+                            <div lwc:if={exportToCSV} class="slds-page-header__control">
+                                <lightning-button-icon icon-name="utility:download" onclick={handleExportToCSV}
+                                    alternative-text={labels.labelExportToCSV} variant="border-filled">
+                                    <label>{labels.labelExportToCSV}</label>
+                                </lightning-button-icon>
+                            </div>
+                            <div class="slds-page-header__control">
+                                <lightning-button-icon icon-name="utility:refresh" onclick={handleRefresh}
+                                    alternative-text={labels.labelRefresh} variant="border-filled">
+                                    <label>{labels.labelRefresh}</label>
+                                </lightning-button-icon>
+                            </div>
+                            <div class="slds-page-header__control" lwc:if={canCloseFiltersPanel}>
+                                <lightning-button-icon-stateful icon-name="utility:filterList"
+                                    selected={showFiltersPanel} onclick={handleShowFiltersPanel}
+                                    alternative-text={filtersPanelTitle} variant="border-filled">
+                                </lightning-button-icon-stateful>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </template>
+        </div>
+        <div class="slds-grid" style="position:relative;">
+            <div class="slds-grid slds-col sl-viewer-panel">
+                <template lwc:if={leftFilters}>
+                    <div class={filtersPanelDivClass}>
+                        <c-filter-panel initialized-context={initializedContext} can-close={canCloseFiltersPanel}
+                            filters-max-height={filtersMaxHeight} filters-width={filtersWidth} filters-columns={filtersColumns}
+                            display-right={rightFilters} onclose={handleShowFiltersPanel} onapply={handleApplyFilter}>
+                        </c-filter-panel>
+                    </div>
+                </template>
+                <div class={viewerContainerClass} onscroll={handleViewerScroll}>
+                    <c-record-viewer row-key={rowKey} static-filters-panel={staticFiltersPanel}
+                        right-filters={rightFilters} show-filters-panel={showFiltersPanel} filters-width={filtersWidth}
+                        onviewersort={handleSortUpdate} onconnected={handleViewerConnected}
+                        onrowaction={handleRowAction} onloadmore={handleLoadMore} onloadall={handleLoadAll}
+                        onrecordsupdated={handleRecordsUpdated} is-loading={isLoading}
+                        initialized-context={initializedContext}>
+                    </c-record-viewer>
+                </div>
+                <template lwc:if={rightFilters}>
+                    <div class={filtersPanelDivClass}>
+                        <c-filter-panel initialized-context={initializedContext} can-close={canCloseFiltersPanel}
+                            filters-max-height={filtersMaxHeight} filters-width={filtersWidth} filters-columns={filtersColumns}
+                            display-right={rightFilters} onclose={handleShowFiltersPanel} onapply={handleApplyFilter}>
+                        </c-filter-panel>
+                    </div>
+                </template>
+            </div>
+        </div>
+        <template lwc:if={errorMsg}>
+            <div class="slds-card__body cardbody">
+                <div class="slds-card__body--inner">
+                    <div class="slds-tile__detail">
+                        <div role="alert" class="slds-grid slds-align_absolute-center">
+                            <div role="alert"
+                                class="warning strength_1 desktop slds-text-color_error slds-text-heading_medium">
+                                <span>{errorMsg}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </template>
+    </article>
+    <template lwc:if={showExportToCSVModal}>
+        <c-export-to-csv-modal list-name={listName} fields={fields} row-key={rowKey} is-multi-currency={isMultiCurrency}
+            add-record-id={exportToCSVAddRecordId} parms={exportToCSVParms} onclose={handleCloseExportToCSV}></c-export-to-csv-modal>
+    </template>
+    <template lwc:if={showDeleteRecordModal}>
+        <c-delete-record-modal object-label={objectLabel} record-id={currentRecordId} message={deleteRecordMessage}
+            onclose={handleCloseDeleteRecord}></c-delete-record-modal>
+    </template>
+    <template lwc:if={showScreenFlowModal}>
+        <c-screen-flow-modal action={currentFlowAction} rows={flowRows} parent-id={recordId}
+            onclose={handleCloseScreenFlow}></c-screen-flow-modal>
+    </template>
+</template>

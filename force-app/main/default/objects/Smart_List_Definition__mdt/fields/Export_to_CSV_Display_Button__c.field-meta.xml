@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Export_to_CSV_Display_Button__c</fullName>
+    <fieldManageability>DeveloperControlled</fieldManageability>
+    <label>Export  to CSV: Display Button</label>
+    <required>false</required>
+    <type>Picklist</type>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>Never</fullName>
+                <default>true</default>
+                <label>Never</label>
+            </value>
+            <value>
+                <fullName>AllUsers</fullName>
+                <default>false</default>
+                <label>For all Users</label>
+            </value>
+            <value>
+                <fullName>CustomPermission</fullName>
+                <default>false</default>
+                <label>For Users with Custom Permission &apos;Export to CSV&apos;</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

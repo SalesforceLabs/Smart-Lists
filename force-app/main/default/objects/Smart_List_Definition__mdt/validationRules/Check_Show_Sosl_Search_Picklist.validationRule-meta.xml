@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Check_Show_Sosl_Search_Picklist</fullName>
+    <active>true</active>
+    <errorConditionFormula>!ISPICKVAL( Show_SOSL_Search__c , &apos;No&apos;) &amp;&amp; SOQL_Scope_My_Team__c</errorConditionFormula>
+    <errorDisplayField>Show_SOSL_Search__c</errorDisplayField>
+    <errorMessage>Show SOQL Search in Component or Filters Panel cannot be selected with the My Team visibility filter</errorMessage>
+</ValidationRule>

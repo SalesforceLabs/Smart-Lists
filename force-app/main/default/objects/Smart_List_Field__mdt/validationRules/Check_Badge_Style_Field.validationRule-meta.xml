@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Check_Badge_Style_Field</fullName>
+    <active>true</active>
+    <errorConditionFormula>Display_as_Badge__c = true &amp;&amp;  ISBLANK( Badge_Style_Field__c )</errorConditionFormula>
+    <errorDisplayField>Badge_Style_Field__c</errorDisplayField>
+    <errorMessage>Badge Style Field is required if the field is displayed as a Badge</errorMessage>
+</ValidationRule>

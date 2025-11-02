@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>List_Icon__c</fullName>
+    <externalId>false</externalId>
+    <fieldManageability>DeveloperControlled</fieldManageability>
+    <inlineHelpText>Name of a SLDS icon formatted as [icon category in lower case]:[icon name in lower case]. Example: standard:account
+https://www.lightningdesignsystem.com/icons/
+If empty, Smart Lists will try to determine the icon for the list SObject
+Required for Apex Data Sources without SObject.</inlineHelpText>
+    <label>List Icon</label>
+    <length>255</length>
+    <required>false</required>
+    <type>Text</type>
+    <unique>false</unique>
+</CustomField>

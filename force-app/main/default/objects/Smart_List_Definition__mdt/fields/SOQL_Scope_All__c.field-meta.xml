@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>SOQL_Scope_All__c</fullName>
+    <defaultValue>true</defaultValue>
+    <fieldManageability>DeveloperControlled</fieldManageability>
+    <inlineHelpText>Returns all records visible by the running user</inlineHelpText>
+    <label>Visibility Filter - All</label>
+    <type>Checkbox</type>
+</CustomField>

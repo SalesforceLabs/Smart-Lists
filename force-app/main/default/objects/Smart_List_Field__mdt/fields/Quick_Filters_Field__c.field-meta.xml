@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Quick_Filters_Field__c</fullName>
+    <defaultValue>&apos;Yes if Filterable&apos;</defaultValue>
+    <externalId>false</externalId>
+    <fieldManageability>DeveloperControlled</fieldManageability>
+    <inlineHelpText>If &apos;Yes if Filterable&apos; is selected, the field will be added to the Filters Panel if it is filterable at the object level. Some fields are not filterable because of their data type or because they are encrypted with the probabilistic algorithm</inlineHelpText>
+    <label>Display in Filters Panel</label>
+    <required>false</required>
+    <type>Picklist</type>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>Yes if Filterable</fullName>
+                <default>true</default>
+                <label>Yes if Filterable</label>
+            </value>
+            <value>
+                <fullName>No</fullName>
+                <default>false</default>
+                <label>No</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

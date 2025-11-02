@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Screenflow_Show_Label_in_Modal_Header__c</fullName>
+    <defaultValue>true</defaultValue>
+    <description>If checked, the label of the action is displayed in the modal header. Make sure to uncheck &apos;Show Header&apos; in the screens of the flow otherwise, the label is displayed twice.</description>
+    <externalId>false</externalId>
+    <fieldManageability>DeveloperControlled</fieldManageability>
+    <label>Screenflow: Show Label in Modal Header</label>
+    <type>Checkbox</type>
+</CustomField>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Show_SOSL_Search_in_Quick_Filter__c</fullName>
+    <defaultValue>true</defaultValue>
+    <fieldManageability>DeveloperControlled</fieldManageability>
+    <inlineHelpText>Display the SOSL Search in the Filters widget.
+Can only be selected if the visibility filter My Team is not selected</inlineHelpText>
+    <label>Show SOSL Search in Filters (Deprecated)</label>
+    <type>Checkbox</type>
+</CustomField>

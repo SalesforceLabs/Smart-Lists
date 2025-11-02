@@ -1,0 +1,54 @@
+<template>
+    <template lwc:if={datatype.isBoolean}>
+        <lightning-input type="checkbox" checked={editedValue} class="sl-editor slds-var-p-bottom_small" tabindex={internalTabIndex}
+            onfocus={handleComponentFocus} onblur={handleComponentBlur} onchange={handleCheckboxChange}></lightning-input>
+    </template>
+    <template lwc:elseif={datatype.isLocation}>
+        <lightning-input-location latitude={editedValue.latitude} longitude={editedValue.longitude} required={required}
+            variant="label-hidden" class="sl-editor" data-navigation="enable" onfocus={handleComponentFocus} onblur={handleComponentBlur}
+            onchange={handleInputChange}>
+        </lightning-input-location>
+    </template>
+    <template lwc:elseif={datatype.isLookup}>
+        <c-sl-lookup value={lookupValue} objects={lookupObjects} is-datatable-editor="true" required={required}
+            class="sl-editor" data-navigation1="enable" data-inputable="true" onfocus={handleComponentFocus} onblur={handleComponentBlur}
+            onchange={handleLookupChange} multi-select="false">
+        </c-sl-lookup>
+    </template>
+    <template lwc:elseif={datatype.isMultiPicklist}>
+        <c-sl-autocomplete-combobox value={comboValue} options={comboOptions} multi-select="true" variant="label-hidden"  
+            is-datatable-editor="true" required={required}
+            class="sl-editor" data-navigation="enable" onfocus={handleComponentFocus} onblur={handleComponentBlur}
+            onchange={handleComboChange}></c-sl-autocomplete-combobox>
+    </template>
+    <template lwc:elseif={datatype.isNumberInputType}>
+        <lightning-input type="number" value={editedValue} step="any" required={required} variant="label-hidden"
+            class="sl-editor" tabindex={internalTabIndex} onfocus={handleComponentFocus} onblur={handleComponentBlur}
+            onchange={handleInputChange}></lightning-input>
+    </template>
+    <template lwc:elseif={datatype.isPercent}>
+        <lightning-input type="number" value={editedValue} step="any" formatter="percent" required={required}
+            variant="label-hidden" class="sl-editor" tabindex={internalTabIndex} onfocus={handleComponentFocus}
+            onblur={handleComponentBlur} onchange={handleInputChange}></lightning-input>
+    </template>
+    <template lwc:elseif={datatype.isPicklist}>
+        <c-sl-autocomplete-combobox value={comboValue} options={comboOptions} multi-select="false" variant="label-hidden"  
+            is-datatable-editor="true" required={required} data-navigation="enable" 
+            class="sl-editor" onfocus={handleComponentFocus} onblur={handleComponentBlur}
+            onchange={handleComboChange}></c-sl-autocomplete-combobox>
+    </template>
+    <template lwc:elseif={datatype.isRichText}>
+        <lightning-input-rich-text value={editedValue}  formats={rtaFormats} label-visible="false" class="sl-editor" tabindex={internalTabIndex}
+            onkeyup={handleRTAKeyDown} onchange={handleInputChange}></lightning-input-rich-text>
+    </template>
+    <template lwc:elseif={datatype.isTextAreaTypes}>
+        <lightning-textarea value={editedValue} required={required} variant="label-hidden" class="sl-editor"
+            onfocus={handleComponentFocus} onblur={handleComponentBlur}
+            onchange={handleInputChange}></lightning-textarea>
+    </template>
+    <template lwc:else>
+        <lightning-input type={datatype.inputType} value={editedValue} required={required} variant="label-hidden" date-style="short"
+            class="sl-editor" tabindex={internalTabIndex} onfocus={handleComponentFocus} onblur={handleComponentBlur}
+            onchange={handleInputChange}></lightning-input>
+    </template>
+</template>

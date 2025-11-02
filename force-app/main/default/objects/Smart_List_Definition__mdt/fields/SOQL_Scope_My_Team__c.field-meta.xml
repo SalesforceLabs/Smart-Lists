@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>SOQL_Scope_My_Team__c</fullName>
+    <defaultValue>false</defaultValue>
+    <fieldManageability>DeveloperControlled</fieldManageability>
+    <inlineHelpText>Returns records owned by the running user or his subordinates in the role hierarchy. Make sure this scope is supported for the object (Equivalent of My Team filter in report). Cannot be selected if Show SOSL Search in Quick Filter is checked</inlineHelpText>
+    <label>Visibility Filter - My Team</label>
+    <type>Checkbox</type>
+</CustomField>

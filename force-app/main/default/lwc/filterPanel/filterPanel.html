@@ -1,0 +1,278 @@
+<template>
+    <template lwc:if={initializedContext}>
+        <div class={panelClass}>
+            <div class="slds-panel__header sl-filters-panel-background">
+                <h2 class="slds-panel__header-title slds-text-heading_small slds-truncate">
+                    {labels.labelQuickFilters}
+                </h2>
+                <template lwc:if={canClose}>
+                    <button
+                        class="id-quickFilterClose slds-button slds-button_icon slds-button_icon-small slds-panel__close"
+                        title={labels.labelClose} onmousedown={handleClose}>
+                        <lightning-icon size="x-small" icon-name="utility:close" alternative-text={labels.labelClose}
+                            title={labels.labelClose}></lightning-icon>
+                        <label></label>
+                    </button>
+                </template>
+            </div>
+            <form onsubmit={handleApply}>
+                <div class={filtersClass}>
+                    <div
+                        class="slds-filters slds-col slds-grid slds-wrap slds-grid_vertical-align-start slds-gutters_direct-x-small">
+                        <template for:each={filterModel} for:item="item">
+                            <div key={item.fieldName} class={filterClass} id={item.fieldName}>
+                                <template lwc:if={item.isSosl}>
+                                    <div class="slds-form-element">
+                                        <label class="slds-form-element__label" for={item.fieldName}>
+                                            {item.fieldLabel}
+                                            <span lwc:if={hasNonSearchableFields}>
+                                                <lightning-helptext content={nonSearchableFields} class="sl-helptext"></lightning-helptext>
+                                            </span>
+                                        </label>
+                                        <div class="slds-form-element__control slds-grid">
+                                            <div class="slds-col slds-no-space">
+                                                <lightning-input type={item.inputType} data-name={item.fieldName}
+                                                    name={item.fieldName} label={item.fieldLabel} variant="label-hidden"
+                                                    autocomplete="off" onchange={handleInputChange}
+                                                    onblur={handleSOSLSearchBlur}>
+                                                </lightning-input>
+                                            </div>
+                                            <div class="slds-col slds-no-flex sl-clear-filter">
+                                                <lightning-button-icon icon-name="utility:clear" variant="bare"
+                                                    data-clear={item.fieldName} alternative-text={labels.labelClear}
+                                                    class="slds-var-m-left_xx-small" onmousedown={handleClearFilter} disabled={item.hasNoValue}>
+                                                </lightning-button-icon>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </template>
+                                <template lwc:elseif={item.isSingle}>
+                                    <fieldset class="slds-form-element slds-form-element_compound"
+                                        data-filter={item.fieldName}>
+                                        <label class="slds-form-element__label" for={item.fieldName}>
+                                            {item.fieldLabel}
+                                        <span lwc:if={item.helptext}>
+                                            <lightning-helptext content={item.helptext} class="sl-helptext"></lightning-helptext>
+                                        </span>
+                                        <span class="sl-operator-helptext" data-operator={item.fieldName}>{item.operator.label}</span>
+                                        </label>
+                                        <div class="slds-form-element__control slds-grid">
+                                            <div class="slds-col slds-no-space sl-operator-div">
+                                                <c-sl-autocomplete-combobox field={item.fieldName} parent={panelBody}
+                                                    label={labels.labelSelectOperator} options={item.operators}
+                                                    value={item.operator.value} multi-select="false"
+                                                    variant="label-hidden" is-filter is-operator
+                                                    class="sl-operator-combo"
+                                                    onchange={handleOperatorChange}></c-sl-autocomplete-combobox>
+                                            </div>
+                                            <div class="slds-form-element__row slds-col slds-no-space">
+                                                <div class="slds-col slds-no-space">
+                                                    <c-sl-multi-value-input lwc:if={item.hasLikeOperator} type={item.inputType} data-name={item.fieldName}
+                                                        id={item.fieldName} name={item.fieldName} onchange={handleMultiInputChange}>
+                                                    </c-sl-multi-value-input>
+                                                    <lightning-input lwc:else type={item.inputType} data-name={item.fieldName}
+                                                        id={item.fieldName} name={item.fieldName} variant="label-hidden"
+                                                        label={item.fieldLabel} autocomplete="off"
+                                                        onchange={handleInputChange}>
+                                                    </lightning-input>
+                                                </div>
+                                            </div>
+                                            <div class="slds-col slds-no-flex sl-clear-filter">
+                                                <lightning-button-icon icon-name="utility:clear" variant="bare"
+                                                    data-clear={item.fieldName} alternative-text={labels.labelClear}
+                                                    class="slds-var-m-left_xx-small" onmousedown={handleClearFilter} disabled={item.hasNoValue}>
+                                                </lightning-button-icon>
+                                            </div>
+                                        </div>
+                                    </fieldset>
+                                </template>
+                                <template lwc:elseif={item.isBoolean}>
+                                    <fieldset class="slds-form-element slds-form-element_compound"
+                                        data-filter={item.fieldName}>
+                                        <label class="slds-form-element__label"
+                                            for={item.fieldName}>{item.fieldLabel}
+                                            <span lwc:if={item.helptext}>
+                                                <lightning-helptext content={item.helptext} class="sl-helptext"></lightning-helptext>
+                                            </span>
+                                            <span class="sl-operator-helptext" data-operator={item.fieldName}>{item.operator.label}</span>
+                                        </label>
+                                        <div class="slds-form-element__control slds-grid">
+                                            <div class="slds-col slds-no-space sl-operator-div">
+                                                <c-sl-autocomplete-combobox field={item.fieldName} parent={panelBody}
+                                                    label={labels.labelSelectOperator} options={item.operators}
+                                                    value={item.operator.value} multi-select="false"
+                                                    variant="label-hidden" is-filter is-operator disabled
+                                                    class="sl-operator-combo"
+                                                    onchange={handleOperatorChange}></c-sl-autocomplete-combobox>
+                                            </div>
+                                            <div class="slds-form-element__row slds-col slds-no-space">
+                                                <div class="slds-col slds-no-space">
+                                                    <lightning-radio-group name={item.fieldName}
+                                                        data-name={item.fieldName} class="slds-col slds-no-space"
+                                                        label={item.fieldLabel} options={booleanOptions} type="radio"
+                                                        variant="label-hidden"
+                                                        onchange={handleInputChange}></lightning-radio-group>
+                                                </div>
+                                            </div>
+                                            <div class="slds-col slds-no-flex sl-clear-filter">
+                                                <lightning-button-icon icon-name="utility:clear" variant="bare"
+                                                    data-clear={item.fieldName} alternative-text={labels.labelClear}
+                                                    class="slds-var-m-left_xx-small" onmousedown={handleClearFilter} disabled={item.hasNoValue}>
+                                                </lightning-button-icon>
+                                            </div>
+                                        </div>
+                                    </fieldset>
+                                </template>
+                                <template lwc:elseif={item.isRange}>
+                                    <fieldset class="slds-form-element slds-form-element_compound"
+                                        data-filter={item.fieldName}>
+                                        <legend class="slds-form-element__legend slds-form-element__label">
+                                            {item.fieldLabel}
+                                            <span lwc:if={item.helptext}>
+                                                <lightning-helptext content={item.helptext} class="sl-helptext"></lightning-helptext>
+                                            </span>
+                                            <span class="sl-operator-helptext" data-operator={item.fieldName}>{item.operator.label}</span>
+                                        </legend>
+                                        <div class="slds-form-element__control slds-grid">
+                                            <div class="slds-col slds-no-space sl-operator-div sl-operator-div-range">
+                                                <c-sl-autocomplete-combobox field={item.fieldName} parent={panelBody}
+                                                    label={labels.labelSelectOperator} options={item.operators}
+                                                    value={item.operator.value} multi-select="false"
+                                                    variant="label-hidden" is-filter is-operator
+                                                    class="sl-operator-combo"
+                                                    onchange={handleOperatorChange}></c-sl-autocomplete-combobox>
+                                            </div>
+                                            <div class="slds-form-element__row slds-col slds-no-space">
+                                                <div class="slds-size_1-of-2">
+                                                    <template lwc:if={item.isNumberRange}>
+                                                        <lightning-input type="number" step={item.step}
+                                                            data-name={item.minName} name={item.minName}
+                                                            label={item.minLabel} autocomplete="off"
+                                                            onchange={handleInputChange} onblur={handleRangeBlur}>
+                                                        </lightning-input>
+                                                    </template>
+                                                    <template lwc:else>
+                                                        <lightning-input type={item.inputType} data-name={item.minName}
+                                                            name={item.minName} label={item.minLabel} autocomplete="off"
+                                                            onchange={handleInputChange} onblur={handleRangeBlur}>
+                                                        </lightning-input>
+                                                    </template>
+                                                </div>
+                                                <div class="slds-size_1-of-2">
+                                                    <template lwc:if={item.isNumberRange}>
+                                                        <lightning-input type="number" step={item.step}
+                                                            data-name={item.maxName} name={item.maxName}
+                                                            label={item.maxLabel} autocomplete="off"
+                                                            onchange={handleInputChange} onblur={handleRangeBlur}>
+                                                        </lightning-input>
+                                                    </template>
+                                                    <template lwc:else>
+                                                        <lightning-input type={item.inputType} data-name={item.maxName}
+                                                            name={item.maxName} label={item.maxLabel} autocomplete="off"
+                                                            onchange={handleInputChange} onblur={handleRangeBlur}>
+                                                        </lightning-input>
+                                                    </template>
+                                                </div>
+                                            </div>
+                                            <div class="slds-col slds-no-flex sl-clear-filter-range">
+                                                <lightning-button-icon icon-name="utility:clear" variant="bare"
+                                                    data-clearmin={item.minName} data-clearmax={item.maxName}
+                                                    alternative-text={labels.labelClear}
+                                                    class="slds-var-m-left_xx-small" onmousedown={handleClearFilter} disabled={item.hasNoValue}>
+                                                </lightning-button-icon>
+                                            </div>
+                                        </div>
+                                    </fieldset>
+                                </template>
+                                <template lwc:elseif={item.isPicklist}>
+                                    <fieldset class="slds-form-element slds-form-element_compound"
+                                        data-filter={item.fieldName}>
+                                        <label class="slds-form-element__label"
+                                            for={item.fieldName}>{item.fieldLabel}
+                                            <span lwc:if={item.helptext}>
+                                                <lightning-helptext content={item.helptext} class="sl-helptext"></lightning-helptext>
+                                            </span>
+                                            <span class="sl-operator-helptext" data-operator={item.fieldName}>{item.operator.label}</span></label>
+                                        <div class="slds-form-element__control slds-grid">
+                                            <div class="slds-col slds-no-space sl-operator-div">
+                                                <c-sl-autocomplete-combobox field={item.fieldName} parent={panelBody}
+                                                    label={labels.labelSelectOperator} options={item.operators}
+                                                    value={item.operator.value} multi-select="false"
+                                                    variant="label-hidden" is-filter is-operator
+                                                    class="sl-operator-combo"
+                                                    onchange={handleOperatorChange}></c-sl-autocomplete-combobox>
+                                            </div>
+                                            <div class="slds-form-element__row slds-col slds-no-space">
+                                                <div class="slds-col slds-no-space">
+                                                    <c-sl-autocomplete-combobox name={item.fieldName}
+                                                        data-name={item.fieldName} parent={panelBody}
+                                                        label={item.fieldLabel} options={item.options}
+                                                        multi-select="true" variant="label-hidden" is-filter
+                                                        onchange={handlePicklistChange}></c-sl-autocomplete-combobox>
+                                                </div>
+                                            </div>
+                                            <div class="slds-col slds-no-flex sl-clear-filter">
+                                                <lightning-button-icon icon-name="utility:clear" variant="bare"
+                                                    data-clear={item.fieldName} alternative-text={labels.labelClear}
+                                                    class="slds-var-m-left_xx-small" onmousedown={handleClearFilter} disabled={item.hasNoValue}>
+                                                </lightning-button-icon>
+                                            </div>
+                                        </div>
+                                    </fieldset>
+                                </template>
+                                <template lwc:elseif={item.isLookup}>
+                                    <fieldset class="slds-form-element slds-form-element_compound"
+                                        data-filter={item.fieldName}>
+                                        <label class="slds-form-element__label"
+                                            for={item.fieldName}>{item.fieldLabel}
+                                            <span  lwc:if={item.helptext}>
+                                                <lightning-helptext content={item.helptext} class="sl-helptext"></lightning-helptext>
+                                            </span>
+                                            <span class="sl-operator-helptext" data-operator={item.fieldName}>{item.operator.label}</span></label>
+                                        <div class="slds-form-element__control slds-grid">
+                                            <div class="slds-col slds-no-space sl-operator-div">
+                                                <c-sl-autocomplete-combobox field={item.fieldName} parent={panelBody}
+                                                    label={labels.labelSelectOperator} options={item.operators}
+                                                    value={item.operator.value} multi-select="false"
+                                                    variant="label-hidden" is-filter is-operator
+                                                    class="sl-operator-combo"
+                                                    onchange={handleOperatorChange}></c-sl-autocomplete-combobox>
+                                            </div>
+                                            <div class="slds-form-element__row slds-col slds-no-space">
+                                                <div class="slds-col slds-no-space">
+                                                    <c-sl-lookup name={item.fieldName} data-name={item.fieldName}
+                                                        parent={panelBody} objects={item.lookupData}
+                                                        onchange={handleLookupChange} variant="label-hidden"
+                                                        label={item.fieldLabel} is-filter multi-select="true">
+                                                    </c-sl-lookup>
+                                                </div>
+                                            </div>
+                                            <div class="slds-col slds-no-flex sl-clear-filter">
+                                                <lightning-button-icon icon-name="utility:clear" variant="bare"
+                                                    data-clear={item.fieldName} alternative-text={labels.labelClear}
+                                                    class="slds-var-m-left_xx-small" onmousedown={handleClearFilter} disabled={item.hasNoValue}>
+                                                </lightning-button-icon>
+                                            </div>
+                                        </div>
+                                    </fieldset>
+                                </template>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+                <div class="slds-grid slds-no-flex panel-footer slds-border_top sl-footer">
+                    <div class="slds-grid slds-wrap">
+                        <lightning-button class="slds-var-m-right_x-small" label={labels.labelCancel}
+                            onmousedown={handleCancel} disabled={cancelDisabled}></lightning-button>
+                        <lightning-button variant="base" label={labels.labelClearAllFilters}
+                            onmousedown={handleClearFilters} disabled={clearAllDisabled}></lightning-button>
+                    </div>
+                    <span class="slds-grid slds-col slds-grid_align-end">
+                        <lightning-button variant="Brand" label={labels.labelApply} type="submit"
+                            disabled={applyDisabled}></lightning-button>
+                    </span>
+                </div>
+            </form>
+        </div>
+    </template>
+</template>
