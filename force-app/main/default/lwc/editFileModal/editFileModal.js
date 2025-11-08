@@ -26,7 +26,6 @@ export default class EditFileModal extends LightningElement {
     }
 
     handleSubmit(event) {
-        console.log('submit');
         event.preventDefault();
         // Display spinner
         setTimeout(() => {

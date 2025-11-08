@@ -292,8 +292,7 @@ export default class SmartListShared extends LightningElement {
     }
 
     get pageHeaderRow1Class() {
-        let cls = 'slds-page-header__row'
-        return this.dataSourceType === 'Files' ? cls += ' sl-page-header-row1' : cls;
+        return 'slds-page-header__row';
     }
     get filtersPanelDivClass() {
         return (this.showFiltersPanel) ? 'slds-col slds-no-flex sl-filters-panel' : 'slds-col slds-no-flex slds-hide sl-filters-panel';

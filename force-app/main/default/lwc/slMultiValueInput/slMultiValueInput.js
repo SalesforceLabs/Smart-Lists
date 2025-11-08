@@ -14,7 +14,6 @@ export default class SlMultiValueInput extends LightningElement {
         return vals;
     }
     set value(val) {
-        console.log('SlMultiValueInput.setValue ' + JSON.stringify(val) + ' ' + val.length);
         const vals = []
         if (val && val.length > 0) {
             for (const item of val) {
@@ -50,7 +49,6 @@ export default class SlMultiValueInput extends LightningElement {
     // INPUT ACTIONS
     handleInput(event) {
         event.stopPropagation();
-        console.log('handleInput ' + JSON.stringify(event.target.value));
         this.inputValue = event.target.value;
     }
 
@@ -61,7 +59,6 @@ export default class SlMultiValueInput extends LightningElement {
     // Keyboard accessibility
     handleInputKeyDown(event) {
         // Enter: add input value if not null
-        console.log('handleInputKeyDown ' + event.key + ' ' + this.addValueDisabled);
         if (event.key === 'Enter') {
             event.preventDefault();
             if ( !this.addValueDisabled)
@@ -69,13 +66,11 @@ export default class SlMultiValueInput extends LightningElement {
         }
     }
 
-
     handleClickAddValue() {
         this.selectedItems.push({value: this.inputValue});
         this.selectedItems = [...this.selectedItems];
         this.inputValue = '';
         this.focusInput();
-        console.log('click ' + JSON.stringify(this.value));
         this.dispatchEvent(
             new CustomEvent('change', { detail: { value: this.value } })
         );

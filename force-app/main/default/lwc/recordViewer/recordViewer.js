@@ -117,25 +117,26 @@ export default class RecordViewer extends NavigationMixin(LightningElement) {
     }
     setHeight() {
         let height;
+        const recordsNbrPerPage = this.noPaging ? Math.min(this.pageSize, this.records.length) : this.records.length;
         if (this.isTable) {
             if (this.tableHeight) 
                 height = this.tableHeight;
-            else if (this.recordsNbrPerPage >= 0 && this.datatable?.headerHeight !== null) {
+            else if (recordsNbrPerPage >= 0 && this.datatable?.headerHeight !== null) {
                 height = this.datatable.headerHeight;
-                if (this.recordsNbrPerPage > 0)
+                if (recordsNbrPerPage > 0)
                     height += this.datatable.rowHeight1;
-                if (this.recordsNbrPerPage > 1)
-                    height += ((this.recordsNbrPerPage - 1) * this.datatable.rowHeight2);
+                if (recordsNbrPerPage > 1)
+                    height += ((recordsNbrPerPage - 1) * this.datatable.rowHeight2);
             }
-        } else if (!this.dynamicTileHeight && this.recordsNbrPerPage)
-            height = this.setTilePageHeight(this.recordsNbrPerPage, this.numberOfTilesPerRow);
+        } else if (!this.dynamicTileHeight && recordsNbrPerPage)
+            height = this.setTilePageHeight(recordsNbrPerPage, this.numberOfTilesPerRow);
         if (height) {
             this.viewer.style.height = height + 'px';
             this.mustSetInitHeight = false;
             // For table, check if height needs to be adjusted to include the horizontal scrollbar
             if (this.isTable) {
                 setTimeout(() => {
-                    if (this.datatable.scrollbarWidth > 0 && this.datatable.scrollbarHeight > 5) {
+                    if (this.datatable.scrollbarWidth > 0 && this.datatable.scrollbarHeight > 0) {
                         const height = parseFloat(getComputedStyle(this.viewer).getPropertyValue('height'));
                         this.viewer.style.height = 'calc(' + height + 'px + 1rem)';
                     }
@@ -146,6 +147,8 @@ export default class RecordViewer extends NavigationMixin(LightningElement) {
     @api scrollLeft = 0;
     // Flag for showing/hidding Load All button
     showLoadAllButton = true;
+    // Flag for triggering scroll to first record after New record
+    scrollAfterNew = false;
     // Flag for triggering scroll to records page after click on Load More
     scrollAfterLoadMore = false;
     // Flag for triggering scroll to last records page after click on Load All
@@ -369,10 +372,20 @@ export default class RecordViewer extends NavigationMixin(LightningElement) {
             setTimeout(() => {
                 this.setWidth();
             }, 10);
-        // Scroll to records if click Load More / Load All
+        // Scroll to records if click New Record / Load More / Load All
         if (!this.isLoading) {
+            // Scroll to new record
+            if (this.scrollAfterNew) {
+                if (this.isTable)
+                    setTimeout(() => {
+                    this.datatable.scrollTo(1);
+                }, 10);
+                else
+                    this.tileContainer.scrollTop = 0;
+                this.scrollAfterNew = false;
+            }
             // Scroll to added records
-            if (this.scrollAfterLoadMore) {
+            else if (this.scrollAfterLoadMore) {
                 if (this.isTable)
                     this.datatable.scrollTo(this.allRecordsLoaded ? this.prevRecordsNbr : this.records.length);
                 else {
@@ -693,9 +706,9 @@ export default class RecordViewer extends NavigationMixin(LightningElement) {
         if (replaceRecords) {
             this.clearSelection();
             this.recordsMap = new Map();
-            this.recordsNbrPerPage = this.noPaging ? Math.min(this.pageSize, pageRecords.length) : pageRecords.length;
             this.firstLoad = true;
             this.selectAllFlag = false;
+            this.mustSetInitHeight = true;
         }
         // Store previous number of records for scroll after Load More click 
         this.prevRecordsNbr = this.records.length;
@@ -734,12 +747,11 @@ export default class RecordViewer extends NavigationMixin(LightningElement) {
     @api refreshRecord(refreshedRecord, newId, oldId) {
         const newRecord = this.formatRecord(refreshedRecord, false);
         let records = [];
+        const insert = !oldId;
         // New record: insert record at the top the list
-        if (!oldId) {
+        if (insert) {
             records = [...this.records];
             records.unshift(newRecord);
-            if (this.isTable && !this.tableHeight && this.records.length < this.pageSize)
-                this.setHeight(records.length);
         }
         // Updated record: replace record with updated version
         else {
@@ -748,6 +760,12 @@ export default class RecordViewer extends NavigationMixin(LightningElement) {
             }
         }
         this.records = records;
+        // Resize height if insert record at top of table
+        if (insert && this.records.length < this.pageSize)
+            this.mustSetInitHeight = true;
+        // Scroll to first
+        if (insert)
+            this.scrollAfterNew = true;
     }
 
     getRelatedValue(record, parts) {
