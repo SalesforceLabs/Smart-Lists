@@ -5,8 +5,8 @@
       "default": true,
       "package": "SmartLists",
       "versionName": "Summer 26",
-      "versionNumber": "5.0.1",
-      "ancestorVersion": "5.0.0"
+      "versionNumber": "5.0.2",
+      "ancestorVersion": "5.0.1"
     }
   ],
   "name": "sflabs",
@@ -73,6 +73,7 @@
     "SmartLists@4.0.6": "04tHr000001nBdtIAE",
     "SmartLists@4.1.0": "04tHr000001nCKqIAM",
     "SmartLists@5.0.0": "04tHr000001nCKvIAM",
-    "SmartLists@5.0.1": "04tHr000001nCLFIA2"
+    "SmartLists@5.0.1": "04tHr000001nCLFIA2",
+    "SmartLists@5.0.2": "04tHr000001nCLKIA2"
   }
 }

@@ -66,12 +66,12 @@ export default class SlDatatable extends LightningDatatable {
         const parentRect = this.scrollableContainerY.getBoundingClientRect();
         const findMeRect = row.getBoundingClientRect();
         if (findMeRect.top < parentRect.top) {
-            if (itemDiv.offsetTop + findMeRect.height < parentRect.height) {
+            if (findMeRect.top + findMeRect.height < parentRect.height) {
                 // If element fits by scrolling to the top, then do that
                 this.scrollableContainerY.scrollTop = 0;
             } else {
                 // Otherwise, top align the element
-                this.scrollableContainerY.scrollTop = itemDiv.offsetTop;
+                this.scrollableContainerY.scrollTop = row.offsetTop;
             }
         } else if (findMeRect.bottom > parentRect.bottom) {
             // bottom align the element
