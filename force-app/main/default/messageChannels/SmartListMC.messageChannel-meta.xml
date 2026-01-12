@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <LightningMessageChannel xmlns="http://soap.sforce.com/2006/04/metadata">
     <description>Message Channel for SmartList</description>
-    <isExposed>true</isExposed>
+    <isExposed>false</isExposed>
     <lightningMessageFields>
         <description>Inboud: Targetted Smart List APIName or ALL for targetting all Smart Lists in the page - Outbound: Smart List sending the notification</description>
         <fieldName>list</fieldName>

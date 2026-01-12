@@ -34,7 +34,7 @@ import labelSelectAll from "@salesforce/label/c.SelectAll";
 
 // Import message service features required for subscribing and the message channel
 import { subscribe, MessageContext } from 'lightning/messageService';
-import SMARTLIST_CHANNEL from '@salesforce/messageChannel/SmartList__c';
+import SMARTLIST_CHANNEL from '@salesforce/messageChannel/SmartListMC__c';
 
 export default class SmartListShared extends LightningElement {
     // PARAMETERS FROM LWC

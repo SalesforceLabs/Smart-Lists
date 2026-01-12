@@ -871,9 +871,10 @@ global with sharing class SmartListController {
         if (context == null)
             context = getListContext(listName);
         if (context.Parent_Key_Field__c != null) {
-            String query = 'SELECT ' + context.Parent_Key_Field__c + ' FROM ' + context.Parent_Object__c + ' WHERE Id = \'' + recordId + '\'';
+            String query = 'SELECT ' + context.Parent_Key_Field__c + ' FROM ' + context.Parent_Object__c + 
+                ' WHERE Id = \'' + String.escapeSingleQuotes(recordId) + '\'';
             // Query on system object in System Mode - no possible SQL injection, filter based on data from the controller & LWC (recordId)
-            sObject s = Database.query(query);
+            sObject s = Database.query(query, AccessLevel.USER_MODE);
             return (s.get(context.Parent_Key_Field__c) == null) ? null : String.valueOf(s.get(context.Parent_Key_Field__c));
         } else
             return recordId;
@@ -1367,9 +1368,9 @@ global with sharing class SmartListController {
             // Filter variables
             if (!String.isEmpty(listFilter)) {
                 if (listFilter.contains('USERID'))
-                    listFilter = listFilter.replaceAll('USERID', '\'' + UserInfo.getUserId() + '\'');
+                    listFilter = listFilter.replaceAll('USERID', '\'' + String.escapeSingleQuotes(UserInfo.getUserId()) + '\'');
                 if (listFilter.contains('PARENTID'))
-                    listFilter = listFilter.replaceAll('PARENTID', '\'' + parentId + '\'');
+                    listFilter = listFilter.replaceAll('PARENTID', '\'' + String.escapeSingleQuotes(parentId) + '\'');
             }
             // Remove extension for sort on formatted currency field
             if (sortField != null)
@@ -1433,7 +1434,7 @@ global with sharing class SmartListController {
             // Query on system object in System Mode - no possible SQL injection, filter based on data from the controller, results never sent to the UI
             for (ContentDocumentLink cdl : [SELECT ContentDocumentId FROM ContentDocumentLink WHERE LinkedEntityId = :parentId]){
                 cdIds += String.isNotEmpty(cdIds) ? ', ' : '';
-                cdIds += '\'' + cdl.ContentDocumentId + '\'';
+                cdIds += '\'' + String.escapeSingleQuotes(cdl.ContentDocumentId) + '\'';
             }
             if (String.isEmpty(cdIds))
                 return new List<SObject>();
@@ -1443,7 +1444,7 @@ global with sharing class SmartListController {
         else if (parentIdField != null) {
             if (parentId == null)
                 return new List<SObject>();
-            whereFilter = addToWhereFilter(whereFilter, parentIdField + ' = \'' + parentId + '\'');
+            whereFilter = addToWhereFilter(whereFilter, parentIdField + ' = \'' + String.escapeSingleQuotes(parentId) + '\'');
         }
         // Filters Panel where clause
         String panelFilter = '';
@@ -1461,11 +1462,11 @@ global with sharing class SmartListController {
         soqlScope = objectName.endsWith('__x') ? '' : soqlScope;
         // My Scope for SOSL
         if (soqlScope == SCOPE_MY && sosl != null)
-            whereFilter = addToWhereFilter(whereFilter, 'OwnerId =\'' + UserInfo.getUserId() + '\'');
+            whereFilter = addToWhereFilter(whereFilter, 'OwnerId =\'' + String.escapeSingleQuotes(UserInfo.getUserId()) + '\'');
         // My Subordinates Scope
         else if (soqlScope == SCOPE_MY_SUBORDINATES) {
             if (UserInfo.getUserRoleId() != null) {
-                whereFilter = addToWhereFilter(whereFilter, 'Owner.UserRole.ParentRoleId = \'' + UserInfo.getUserRoleId() + '\'');
+                whereFilter = addToWhereFilter(whereFilter, 'Owner.UserRole.ParentRoleId = \'' + String.escapeSingleQuotes(UserInfo.getUserRoleId()) + '\'');
                 soqlScope = SCOPE_ALL;
             }
             else
@@ -1483,7 +1484,7 @@ global with sharing class SmartListController {
                 for (GroupMember gm : gms) {
                     if (ids.length() > 0)
                         ids += ', ';
-                    ids += '\'' + gm.GroupId + '\'';
+                    ids += '\'' + String.escapeSingleQuotes(gm.GroupId) + '\'';
                 }
                 whereFilter = addToWhereFilter(whereFilter, 'OwnerId IN (' + ids + ')');
                 soqlScope = SCOPE_ALL;
@@ -1502,7 +1503,7 @@ global with sharing class SmartListController {
         // SOQL / SOSL
         if (sosl == null) {
             String query = 'SELECT ' + queryFields + ' FROM ' + objectName + scopeClause + ' ' +
-                whereClause + sortClause + ' LIMIT ' + pageSize + ' OFFSET ' + offset; 
+                whereClause + sortClause + ' LIMIT ' + pageSize + ' OFFSET ' + offset;
             System.debug('Query ' + query);
             records = queryInterface.soqlQuery(query);
         } else  {
