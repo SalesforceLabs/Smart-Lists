@@ -231,7 +231,7 @@ public class SmartListTestDataFactory {
         field3.List_Field__c = true;
         field3.Quick_Filters_Field__c = 'Yes if Filterable';
         field3.Display_as_Badge__c = true;
-        field3.Badge_Style_Field__c = 'Rating';
+        field3.Badge_Style_Field__c = 'Description';
         Smart_List_Field__mdt field4 = new Smart_List_Field__mdt();
         field4.Field_Name__c = 'Parent.Name';
         field4.Display_Type__c = 'STRING';
@@ -239,7 +239,7 @@ public class SmartListTestDataFactory {
         field4.Quick_Filters_Field__c = 'Yes if Filterable';
         field4.Lookup_in_Quick_Filters__c = true;
         field4.Lookup_Subtitle_Field__c = 'Site';
-        field4.URL_Value__c = '	Sic';
+        field4.URL_Value__c = 'BillingCity';
         Smart_List_Field__mdt field5 = new Smart_List_Field__mdt();
         field5.Field_Name__c = 'Owner';
         field5.List_Field__c = true;
@@ -251,13 +251,13 @@ public class SmartListTestDataFactory {
         SmartListController.listFields = new Smart_List_Field__mdt[] { field1, field2, field3, field4, field5, field6 };
 
         Smart_List_Filter__mdt filter1 = new Smart_List_Filter__mdt();
-        filter1.SOQL_Filter__c = 'Name = \'ABC\'';
+        filter1.SOQL_Filter__c = 'CreatedById = USERID AND ParentId = PARENTID';
         filter1.Filter_Label__c = '$Label.XYZ';
-        filter1.Default_Filter__c = true;
+        filter1.Default_Filter__c = false;
         Smart_List_Filter__mdt filter2 = new Smart_List_Filter__mdt();
-        filter2.SOQL_Filter__c = 'CreatedById = USERID AND AccountId = PARENTID';
+        filter2.SOQL_Filter__c = 'Name = \'ABC\'';
         filter2.Filter_Label__c = '$Label.XYZ';
-        filter2.Default_Filter__c = false;
+        filter2.Default_Filter__c = true;
         SmartListController.listFilters = new Smart_List_Filter__mdt[] { filter1, filter2 };     
     }
     

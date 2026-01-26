@@ -371,13 +371,11 @@ global with sharing class SmartListController {
     public class ListFilter {
         public String value;
         public String label;
-        public String filter;
         public Boolean defaultFilter;
 
         public ListFilter(Smart_List_Filter__mdt slf) {
             this.value = slf.DeveloperName;
             this.label = getLabel(slf.Filter_Label__c);
-            this.filter = slf.SOQL_Filter__c;
             this.defaultFilter = slf.Default_Filter__c;
         }
     }
@@ -1355,7 +1353,7 @@ global with sharing class SmartListController {
         - pageSize: number of records to return for the page
     */
     @AuraEnabled
-    public static List<Object> getPage(String listName, String listFilter, String soqlScope, List<FilterEntry> filterEntries, 
+    public static List<Object> getPage(String listName, String filter, String soqlScope, List<FilterEntry> filterEntries, 
         String parentId, String sortField, String sortDirection, Integer offset, Integer pageSize){
         
         try {
@@ -1365,12 +1363,22 @@ global with sharing class SmartListController {
             String objectName = context.Object_Name__c;
             String queryFields = context.Query_Fields__c;
             String parentIdField = context.Parent_Id_Field__c;
-            // Filter variables
-            if (!String.isEmpty(listFilter)) {
+            // List Filter variables
+            String listFilter = '';
+            if (!String.isEmpty(filter)) {
+                List<Smart_List_Filter__mdt> filters;
+                if (Test.isRunningTest())
+                    filters = SmartListController.listFilters;                    
+                else
+                    filters = [SELECT SOQL_Filter__c FROM Smart_List_Filter__mdt 
+                    WHERE Smart_List_Definition__r.DeveloperName = :listName AND DeveloperName =:filter LIMIT 1];
+                if (filters.size() == 0)
+                    throw new AuraHandledException('Custom Filter ' + filter + ' not found for list ' + listName);
+                listFilter = filters[0].SOQL_Filter__c;
                 if (listFilter.contains('USERID'))
-                    listFilter = listFilter.replaceAll('USERID', '\'' + String.escapeSingleQuotes(UserInfo.getUserId()) + '\'');
+                    listFilter = listFilter.replaceAll('USERID', '\'' + UserInfo.getUserId() + '\'');
                 if (listFilter.contains('PARENTID'))
-                    listFilter = listFilter.replaceAll('PARENTID', '\'' + String.escapeSingleQuotes(parentId) + '\'');
+                    listFilter = listFilter.replaceAll('PARENTID', '\'' + parentId + '\'');
             }
             // Remove extension for sort on formatted currency field
             if (sortField != null)

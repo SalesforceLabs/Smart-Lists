@@ -606,7 +606,7 @@ export default class SmartListShared extends LightningElement {
         const parms = this.getPageParameters();
         await getPage({
             listName: this.listName,
-            listFilter: parms.listFilter,
+            filter: parms.filter,
             soqlScope: parms.soqlScope,
             filterEntries: parms.filterEntries,
             parentId: parms.parentId,
@@ -633,7 +633,7 @@ export default class SmartListShared extends LightningElement {
     // Get page parameters for getPage and exportToCSV
     getPageParameters() {
         const parms = {
-            listFilter: this.currentListFilter?.filter,
+            filter: this.currentListFilter?.value,
             soqlScope: this.currentSoqlScope,
             filterEntries: this.filterEntries,
             parentId: this.parentId,

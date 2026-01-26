@@ -786,7 +786,7 @@ public class SmartListControllerTest {
             SmartListTestDataFactory.createAccountListDefinition(SmartListController.DATASOURCE_SOQL_WITH_SHARING);
             SmartListController.getListParameters('Test', null, false);
             // Parent ID added for filter on PARENT ID
-            accs = (List<Account>)SmartListController.getPage('Test', 'CreatedById = USERID AND ParentId = PARENTID', SmartListController.SCOPE_MY, fes, parentAcc.Id, 'Name', 'asc', 0, 10);
+            accs = (List<Account>)SmartListController.getPage('Test', 'Test', SmartListController.SCOPE_MY, fes, parentAcc.Id, 'Name', 'asc', 0, 10);
             System.assertEquals(2, accs.size()); // 2 director -> records with Name like Child for PARENTID
         }
         // Test mine scope without predefined filter and with filters from panel (Name like Director) 
@@ -823,7 +823,7 @@ public class SmartListControllerTest {
         }
         // Test all scope with parent id
         System.runAs(director) {
-            accs = (List<Account>)SmartListController.getPage('Test', 'ParentId = PARENTID', SmartListController.SCOPE_MY, null, parentAcc.Id, 'Name', 'asc', 0, 10);
+            accs = (List<Account>)SmartListController.getPage('Test', 'Test', SmartListController.SCOPE_MY, null, parentAcc.Id, 'Name', 'asc', 0, 10);
             System.assertEquals(2, accs.size()); // 2 director -> childs
         }
         // Test ceo: error, no list context
@@ -844,8 +844,9 @@ public class SmartListControllerTest {
             System.assertEquals(5, accs.size()); // 1 ceo + 1 parent director + 2 childs director + 1 csr
         }    
         // Test subordinate scope with filter
+        SmartListController.listFilters[0].SOQL_Filter__c = 'ParentId = PARENTID';
         System.runAs(ceo) {
-        	accs = (List<Account>)SmartListController.getPage('Test', 'ParentId = PARENTID', SmartListController.SCOPE_MY_SUBORDINATES, null, parentAcc.Id, 'Name', 'asc', 0, 10);
+        	accs = (List<Account>)SmartListController.getPage('Test', 'Test', SmartListController.SCOPE_MY_SUBORDINATES, null, parentAcc.Id, 'Name', 'asc', 0, 10);
             System.debug('Accounts ' + accs);
             System.assertEquals(2, accs.size()); // 2 director
         }
