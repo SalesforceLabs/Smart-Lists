@@ -1045,7 +1045,7 @@ export default class RecordViewer extends NavigationMixin(LightningElement) {
     // Adjust datatable to display save bar the 1st time a cell is edited with inline edit
     handleCellChange(event) {
         const draftValues = event.detail.draftValues;
-        //console.log('cellChange ' + JSON.stringify(draftValues));
+        //console.log('recordViewer.handleCellChange ' + JSON.stringify(draftValues));
         // Add values to editedCells for custom datatypes with edit on selected rows
         if (draftValues.length > 1) {
             const editedCellId = draftValues[0].Id;
@@ -1073,6 +1073,13 @@ export default class RecordViewer extends NavigationMixin(LightningElement) {
                 }
             }
         }
+        if (!this.saveBarDisplayed)
+            this.adjustDatatableHeight(true);
+    }
+
+    // The inline edit mode has been cancelled: hide save bar
+    handleDatatableCancel() {
+        this.adjustDatatableHeight(false);
     }
 
     // Notify parent that inline edit values must be saved
@@ -1109,7 +1116,17 @@ export default class RecordViewer extends NavigationMixin(LightningElement) {
             // Required for hiding Cancel / Save buttons
             this.draftValues = [];
             this.editedCells.clear();
+            this.adjustDatatableHeight(false);
         }
+    }
+
+    // Adjust datatable height for inline edit save displayed/hidden
+    adjustDatatableHeight(add) {
+        const height =
+            Number(this.datatableContainer.style.height.replace("px", "")) +
+            (add ? 50 : -50);
+        this.datatableContainer.style.height = height + "px";
+        this.saveBarDisplayed = add;
     }
 
     // TOOLTIP DATA

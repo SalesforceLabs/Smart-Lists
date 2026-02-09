@@ -4,9 +4,9 @@
       "path": "force-app",
       "default": true,
       "package": "SmartLists",
-      "versionName": "Winter 26",
-      "versionNumber": "5.1.1",
-      "ancestorVersion": "5.1.0"
+      "versionName": "Spring 26",
+      "versionNumber": "5.1.2",
+      "ancestorVersion": "5.1.1"
     }
   ],
   "name": "sflabs",
@@ -76,6 +76,7 @@
     "SmartLists@5.0.1": "04tHr000001nCLFIA2",
     "SmartLists@5.0.2": "04tHr000001nCLKIA2",
     "SmartLists@5.1.0": "04tHr000001ivmJIAQ",
-    "SmartLists@5.1.1": "04tHr000001ivmxIAA"
+    "SmartLists@5.1.1": "04tHr000001ivmxIAA",
+    "SmartLists@5.1.2": "04tHr000001iwKYIAY"
   }
 }

@@ -22,7 +22,7 @@
                     onrowselection={handleDatatableRowSelection} load-more-offset="40"
                     enable-infinite-loading={canLoadData} onloadmore={handleLoadMore} ontooltip={handleTooltip}
                     ondisplayvalue={handleDisplayValue} is-loading={isLoading} draft-values={draftValues}
-                    onsave={handleDatatableSave} oncellchange={handleCellChange}
+                    onsave={handleDatatableSave} oncancel={handleDatatableCancel} oncellchange={handleCellChange}
                     oncelledited={handleCellEdited} errors={errors}>
                 </c-sl-datatable>
             </div>
