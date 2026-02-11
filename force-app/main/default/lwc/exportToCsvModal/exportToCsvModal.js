@@ -60,7 +60,7 @@ export default class ExportToCsvModal extends LightningElement {
         this.exporting = true;
         getPage({
             listName: this.listName,
-            listFilter: this.parms.listFilter,
+            filter: this.parms.filter,
             soqlScope: this.parms.soqlScope,
             filterEntries: this.parms.filterEntries,
             parentId: this.parms.parentId,
