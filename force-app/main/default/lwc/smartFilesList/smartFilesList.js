@@ -104,8 +104,8 @@ export default class SmartFilesList2 extends NavigationMixin(LightningElement) {
         this.community = listDef.community;
         this.namespace = listDef.namespace;
         // build list of accepted extensions
-        if (listDef.acceptedExtensions && !listDef.dontCheckFileExtension) {
-            const extArr = listDef.acceptedExtensions.split(",");
+        if (listDef.allowedExtensions && !listDef.dontCheckFileExtension) {
+            const extArr = listDef.allowedExtensions.split(",");
             const acceptedExtensionsArr = [];
             for (let ext of extArr) {
                 acceptedExtensionsArr.push('.' + ext.toLowerCase());

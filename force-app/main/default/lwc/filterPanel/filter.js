@@ -396,7 +396,7 @@ function getOperators(datatype, noLikeFilter) {
         result.push(operators[operatorCodes.ISNULL]);
         result.push(operators[operatorCodes.ISNOTNULL]);
     } else {
-        if (datatype.isFilterRangeType)+
+        if (datatype.isFilterRangeType)
             result.push(operators[operatorCodes.BETWEEN]);
         if (!datatype.isFilterTextType || noLikeFilter)
             result.push(operators[operatorCodes.EQ]);
