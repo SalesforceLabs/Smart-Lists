@@ -332,6 +332,8 @@ export default class FilterPanel extends LightningElement {
     processValueChange(filter, fieldName, value, updateButtons, updateComp) {
         filter.updateValue(fieldName, value);
         this.updateButtonsState(filter);
+        // Make sure the UI is updated
+        this.filterModel = [...this.filterModel];
         if (updateComp)
             this.setFilterValue(filter);
         // Set filter buttons

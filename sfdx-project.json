@@ -5,8 +5,8 @@
       "default": true,
       "package": "SmartLists",
       "versionName": "Spring 26",
-      "versionNumber": "5.2.1.0",
-      "ancestorVersion": "5.2.0.0"
+      "versionNumber": "5.2.2.0",
+      "ancestorVersion": "5.2.1.0"
     }
   ],
   "name": "sflabs",
@@ -81,6 +81,7 @@
     "SmartLists@5.1.3": "04tHr000001iwL2IAI",
     "SmartLists@5.1.4": "04tHr000001iwLbIAI",
     "SmartLists@5.2.0": "04tHr000001Phc6IAC",
-    "SmartLists@5.2.1": "04tHr000001PhcBIAS"
+    "SmartLists@5.2.1": "04tHr000001PhcBIAS",
+    "SmartLists@5.2.2": "04tHr000001PhyMIAS"
   }
 }
