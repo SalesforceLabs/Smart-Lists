@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Search_Value_Required__c</fullName>
+    <defaultValue>false</defaultValue>
+    <externalId>false</externalId>
+    <fieldManageability>DeveloperControlled</fieldManageability>
+    <inlineHelpText>If checked, the list will not load data until a filter value is provided for this field in the Filters Panel. A message is displayed prompting the user to enter a search value. The field must also be displayed in the Filters Panel (Display in Filters Panel).</inlineHelpText>
+    <label>Search Value Required</label>
+    <type>Checkbox</type>
+</CustomField>

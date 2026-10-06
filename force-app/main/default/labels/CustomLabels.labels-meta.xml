@@ -736,6 +736,13 @@
         <value>Search this list...</value>
     </labels>
     <labels>
+        <fullName>SearchValueRequiredMessage</fullName>
+        <language>en_US</language>
+        <protected>false</protected>
+        <shortDescription>SearchValueRequiredMessage</shortDescription>
+        <value>Please enter a search value for the following field(s) to load the list: {0}</value>
+    </labels>
+    <labels>
         <fullName>SelectAll</fullName>
         <language>en_US</language>
         <protected>false</protected>

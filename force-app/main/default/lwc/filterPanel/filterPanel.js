@@ -99,6 +99,16 @@ export default class FilterPanel extends LightningElement {
     @api get hasFilters() {
         return this.filterModel.length > 0;
     }
+    // Labels of the required fields that currently have no filter value
+    @api getMissingRequiredFilters() {
+        return this.filterModel
+            .filter((filter) => filter.isMissingRequiredValue)
+            .map((filter) => filter.fieldLabel);
+    }
+    // True if at least one required field is missing its filter value
+    @api get hasMissingRequiredFilters() {
+        return this.filterModel.some((filter) => filter.isMissingRequiredValue);
+    }
     // Label and value for checkboxes
     BOOLEAN_CHECKED = 'checked';
     BOOLEAN_UNCHECKED = 'unchecked';

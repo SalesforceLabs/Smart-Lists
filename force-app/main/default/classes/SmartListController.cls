@@ -211,6 +211,7 @@ global with sharing class SmartListController {
         public Boolean filterable;
         public Boolean nonSearchable;
         public Boolean required;
+        public Boolean searchValueRequired;
         public Boolean listField;
         public Integer displayPositionInList;
         public Integer displayPositionInFiltersPanel;
@@ -299,6 +300,7 @@ global with sharing class SmartListController {
                 !(isExternalObject && name.contains('.'));            
             nullsSortFirst = slf.Sortable_in_List__c == null || slf.Sortable_in_List__c == 'Yes if Sortable';
             filterable = (slf.Quick_Filters_Field__c == null || slf.Quick_Filters_Field__c == 'Yes if Filterable') && fieldData.dfr.isFilterable();
+            searchValueRequired = slf.Search_Value_Required__c == true && filterable;
             noLikeFilter = fieldData.dfr.isEncrypted() || isExternalObject;
             // Set SOQL operators for Filters Panel
             if (filterable) {
@@ -340,6 +342,7 @@ global with sharing class SmartListController {
                 (slf.Sortable_in_List__c != null && slf.Sortable_in_List__c.startsWith('Yes'));
             nullsSortFirst = slf.Sortable_in_List__c == null || slf.Sortable_in_List__c == 'Yes if Sortable';
             filterable = (slf.Quick_Filters_Field__c == null && slf.Filterable__c) || slf.Quick_Filters_Field__c == 'Yes if Filterable';
+            searchValueRequired = slf.Search_Value_Required__c == true && filterable;
             // Set SOQL operators for Filters Panel
             if (filterable) {
                 filtersPanelOperator1 = getFiltersPanelOperator(filtersType, false, true);
@@ -703,7 +706,7 @@ global with sharing class SmartListController {
                         File_Edit__c, Sortable__c, Filterable__c, Column_Width__c, Display_as_Badge__c, Badge_Style_Field__c, Tile_Header__c,
                         Quick_Filters_Field__c, Display_Position_in_Quick_Filters__c, Hyperlink_to_Detail_Id_Field__c, URL_Value__c,
                         URL_Target__c,  Sortable_in_List__c, Editable_in_List__c, Lookup_in_Quick_Filters__c, Lookup_Subtitle_Field__c, Lookup_SOQL_Filter__c,
-                        Dynamic_Style_Field__c, Field_Alignment__c, Wrap_Text__c, Number_of_columns__c
+                        Dynamic_Style_Field__c, Field_Alignment__c, Wrap_Text__c, Number_of_columns__c, Search_Value_Required__c
                     FROM Smart_List_Field__mdt WHERE Smart_List_Definition__c = :listId ORDER BY Display_Position__c DESC];
         else
             return listFields;
