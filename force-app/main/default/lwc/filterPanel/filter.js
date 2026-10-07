@@ -108,6 +108,7 @@ export class Filter {
     isNumberRange;
     isSosl;
     datatype
+    searchValueRequired;
 
     // Create a filter from a field
     constructor(field) {
@@ -126,6 +127,7 @@ export class Filter {
             this.operators = getOperators(this.datatype, field.noLikeFilter);
             this.operator = getDefaultOperator(this.datatype, field.noLikeFilter);
             this.initOperator = this.operator;
+            this.searchValueRequired = field.searchValueRequired ? true : false;
         }
         this.fieldType = type;
         if (this.datatype.isFilterDateType) {
@@ -254,6 +256,11 @@ export class Filter {
 
     get isActive() {
         return this.hasNullOperator || this.hasValidValue;
+    }
+
+    // True if a search value is required for this field but none is currently supplied
+    get isMissingRequiredValue() {
+        return this.searchValueRequired && !this.isActive;
     }
     
     // Apply button status rules:

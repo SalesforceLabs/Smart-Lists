@@ -31,6 +31,7 @@ import labelSearchBoxLabel from "@salesforce/label/c.SearchBoxLabel";
 import labelSavedChanges from "@salesforce/label/c.SavedChanges";
 import labelErrors from "@salesforce/label/c.Errors";
 import labelSelectAll from "@salesforce/label/c.SelectAll";
+import labelSearchValueRequiredMessage from "@salesforce/label/c.SearchValueRequiredMessage";
 
 // Import message service features required for subscribing and the message channel
 import { subscribe, MessageContext } from 'lightning/messageService';
@@ -95,6 +96,8 @@ export default class SmartListShared extends LightningElement {
         return this.recordsCount + (this.recordViewer.canLoadData || this.maxRecordsLoaded ? '+' : '');
     }
     errorMsg;
+    // Message currently displayed because a required search value is missing (null if none)
+    missingRequiredMsg;
     // ITEMS SECTION
     get itemsCountLabel() {
         if (this.hasSelectedRecords)
@@ -143,7 +146,8 @@ export default class SmartListShared extends LightningElement {
         labelSearchBoxLabel,
         labelSavedChanges,
         labelErrors,
-        labelSelectAll
+        labelSelectAll,
+        labelSearchValueRequiredMessage
     };
 
     // GET RECORDS VARIABLES
@@ -559,6 +563,9 @@ export default class SmartListShared extends LightningElement {
 
     // Load a datatable page
     async loadPage(replaceRecords, loadAll) {
+        // Block loading if a field requires a search value that has not been supplied
+        if (this.checkMissingRequiredFilters())
+            return;
         //Display spinner while data is loaded
         this.isLoading = true;
         this.showSpinner = true;
@@ -628,6 +635,28 @@ export default class SmartListShared extends LightningElement {
         }).catch((error) => {
             this.displayErrorInList(error);
         });
+    }
+
+    // Check that all fields requiring a search value have one.
+    // Returns true if at least one required field is missing its value: in that case
+    // the list is not loaded, the viewer is emptied and a message is displayed.
+    checkMissingRequiredFilters() {
+        const missingFields = this.filtersPanel ? this.filtersPanel.getMissingRequiredFilters() : [];
+        if (missingFields.length === 0) {
+            // Requirement satisfied: clear a previously displayed message
+            if (this.errorMsg === this.missingRequiredMsg)
+                this.errorMsg = null;
+            this.missingRequiredMsg = null;
+            return false;
+        }
+        // Empty the viewer so stale data is not shown behind the message
+        this.recordViewer.setRecordsPage([], true, false, true);
+        this.maxRecordsLoaded = false;
+        this.isLoading = false;
+        this.showSpinner = false;
+        this.missingRequiredMsg = this.labels.labelSearchValueRequiredMessage.replace('{0}', missingFields.join(', '));
+        this.errorMsg = this.missingRequiredMsg;
+        return true;
     }
 
     // Get page parameters for getPage and exportToCSV
